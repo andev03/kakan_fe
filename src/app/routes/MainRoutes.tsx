@@ -5,11 +5,11 @@ import LoginPage from "../page/LoginPage";
 import CalculatePage from "../page/CalculatePage";
 import ContactPage from "../page/ContactPage";
 import PremiumRegisterPage from "../page/RegisterPremium";
-import UniversityDetails from "../page/UniversityDetails";
 import UniversitiesPage from "../page/UniversitiesPage";
 import ForumPage from "../page/forum/ForumPage";
 import ForumDetail from "../page/forum/ForumDetail";
 import ForumPost from "../page/forum/ForumPost";
+import UniversityDetail from "../page/UniversityDetails";
 
 const MainRoutes = () => {
   return (
@@ -26,8 +26,8 @@ const MainRoutes = () => {
           <Route path="/forum-post" element={<ForumPost />} />
 
           <Route
-            path="/university-details/:id"
-            element={<UniversityDetails />}
+            path="/university-details/:name"
+            element={<UniversityDetail />}
           />
           <Route path="/forum-details/:id" element={<ForumDetail />} />
         </Routes>

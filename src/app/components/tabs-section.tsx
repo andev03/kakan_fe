@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Card,
@@ -20,66 +20,99 @@ import {
 
 import universitiesData from "../data/all_schools_info.json";
 import { href, Link, useNavigate } from "react-router-dom";
+import { api } from "../hooks/api";
 // import Header from "../components/header";
+
+interface University {
+  id: string;
+  name: string;
+  url: string;
+  thongTinChung: {
+    tenTruong: string;
+    tenTiengAnh: string;
+    maTruong: string;
+    loaiTruong: string;
+    heDaoTao: string;
+    diaChi: string;
+    sdt: string;
+    email: string;
+    website: string;
+    facebook: string;
+  };
+  thongTinTuyenSinh: {
+    thoiGianXetTuyen: string;
+    doiTuongTuyenSinh: string;
+    phamViTuyenSinh: string;
+    phuongThucTuyenSinh: string;
+    nguongDauVao: string;
+    hocPhi: string;
+  };
+  nganhTuyenSinh: Array<{
+    stt: string;
+    tenNganh: string;
+    maNganh: string;
+    toHopXetTuyen: string;
+    chiTieu: string;
+    [key: string]: any;
+  }>;
+  diemChuan: Array<{
+    stt: string;
+    tenNganh: string;
+    nam2021: string;
+    nam2022: string;
+    nam2023: string;
+    nam2024: string;
+  }>;
+}
 export default function TabsSection() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("tin-tuyen-sinh");
-  const [universities] = useState<University[]>(
-    universitiesData.map((uni) => ({
-      ...uni,
-      id: String(uni.id),
-    }))
-  );
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
   const tabs = [
     { id: "tin-tuyen-sinh", label: "Tin tuyển sinh" },
     { id: "diem-chuan", label: "Điểm chuẩn" },
     { id: "nganh-hoc", label: "Ngành học" },
   ];
 
-  interface University {
-    id: string;
-    name: string;
-    url: string;
-    thong_tin_chung: {
-      ten_truong: string;
-      ten_tieng_anh: string;
-      ma_truong: string;
-      loai_truong: string;
-      he_dao_tao: string;
-      dia_chi: string;
-      sdt: string;
-      email: string;
-      website: string;
-      facebook: string;
-    };
-    thong_tin_tuyen_sinh: {
-      thoi_gian_xet_tuyen: string;
-      doi_tuong_tuyen_sinh: string;
-      pham_vi_tuyen_sinh: string;
-      phuong_thuc_tuyen_sinh: string;
-      nguong_dau_vao: string;
-      hoc_phi: string;
-    };
-    nganh_tuyen_sinh: any[];
-    diem_chuan: any[];
-  }
-
   const [selectedYear, setSelectedYear] = useState("2024");
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      try {
+        const response = await api.get("/school/api/university");
+        setUniversities(response.data.data);
+      } catch (err: any) {
+        setError(err.message || "Lỗi khi lấy dữ liệu");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUniversities();
+  }, []);
 
   const getBenchmarkScore = (universityId: string, year: string) => {
     const university = universities.find((uni) => uni.id === universityId);
     if (!university) return { nganh: "N/A", diem: "N/A" };
 
-    const yearScores = university.diem_chuan.find(
-      (score) => score.STT && score["Ngành"]
+    const yearScores = university.diemChuan.find(
+      (score) => score.stt && score.tenNganh
     );
     if (!yearScores) return { nganh: "N/A", diem: "N/A" };
 
-    const yearKey = `Năm ${year}`;
-    const score = yearScores[yearKey];
+    const yearKey = `nam${year}` as keyof typeof yearScores;
+    const validYearKeys: Array<keyof typeof yearScores> = [
+      "nam2021",
+      "nam2022",
+      "nam2023",
+      "nam2024",
+    ];
+    const score = validYearKeys.includes(yearKey)
+      ? yearScores[yearKey as keyof typeof yearScores]
+      : undefined;
 
     return {
-      nganh: yearScores["Ngành"] || "N/A",
+      nganh: yearScores.tenNganh || "N/A",
       diem: score === "không rõ" ? "N/A" : score || "N/A",
     };
   };
@@ -110,23 +143,23 @@ export default function TabsSection() {
         <div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {universities.slice(0, 3).map((item) => (
-              <Link key={item.id} to={`/university-details/${item.id}`}>
+              <Link key={item.id} to={`/university-details/${item.name}`}>
                 <Card className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer group ">
                   <CardHeader className="pb-4">
                     <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gray-300 transition-colors">
                       <Building2 className="w-8 h-8 text-gray-400" />
                     </div>
                     <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                      {item.thong_tin_chung.ten_truong}
+                      {item.thongTinChung.tenTruong}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <CardDescription className="text-gray-600 mb-4 line-clamp-2">
-                      {item.thong_tin_chung.ten_tieng_anh} -{" "}
+                      {item.thongTinChung.tenTiengAnh} -{" "}
                     </CardDescription>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-500">
-                        {item.thong_tin_chung.website}
+                        {item.thongTinChung.website}
                       </span>
                       <span className="text-blue-500 text-sm font-medium group-hover:text-blue-600">
                         Xem thêm →
@@ -184,11 +217,11 @@ export default function TabsSection() {
                     </div>
                     <div>
                       <h4 className="font-medium mb-1">
-                        Đại học {item.thong_tin_chung.ten_truong}
+                        Đại học {item.thongTinChung.tenTruong}
                       </h4>
                       <div className="flex items-center text-xs text-slate-500">
                         <MapPin className="h-3 w-3 mr-1" />
-                        <span>{item.thong_tin_chung.dia_chi}</span>
+                        <span>{item.thongTinChung.diaChi}</span>
                       </div>
                     </div>
                   </div>

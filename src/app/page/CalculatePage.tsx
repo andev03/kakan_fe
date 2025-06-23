@@ -3,7 +3,6 @@
 import { Calculator, Award, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { api } from "../hooks/api";
 import axios from "axios";
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -46,10 +45,10 @@ export default function TinhDiemPage() {
       setError(null);
 
       // Gửi dữ liệu đến API backend bằng axios
-      const response = await api.post("/api/calculate-score", scores);
+      // const response = await api.post("/api/calculate-score", scores);
 
       // Giả sử dữ liệu trả về nằm trong response.data
-      setResult(response.data);
+      // setResult(response.data);
     } catch (err) {
       // Kiểm tra xem lỗi có phải là AxiosError không
       if (axios.isAxiosError(err)) {

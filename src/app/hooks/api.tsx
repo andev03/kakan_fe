@@ -5,17 +5,17 @@ import type {
   AxiosError,
 } from "axios";
 
-const baseURL = "http://localhost:8080";
+const baseURL = "http://localhost:8800"; // Tất cả gọi qua API Gateway
 
 export const api = axios.create({
-  baseURL: baseURL,
+  baseURL,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Interceptor to add token to headers
+// Interceptors: Thêm token vào headers nếu có
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("token");
@@ -24,19 +24,10 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error: AxiosError) => {
-    console.error("Request error:", error);
-    return Promise.reject(error);
-  }
+  (error: AxiosError) => Promise.reject(error)
 );
 
-// Interceptor to handle response
 api.interceptors.response.use(
-  (response: AxiosResponse) => {
-    return response;
-  },
-  (error: AxiosError) => {
-    console.error("Response error:", error);
-    return Promise.reject(error);
-  }
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => Promise.reject(error)
 );

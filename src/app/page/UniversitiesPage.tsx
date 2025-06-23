@@ -3,13 +3,70 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import universitiesData from "../data/all_schools_info.json";
 import Header from "../components/header";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { api } from "../hooks/api";
 
+interface University {
+  id: string;
+  name: string;
+  url: string;
+  thongTinChung: {
+    tenTruong: string;
+    tenTiengAnh: string;
+    maTruong: string;
+    loaiTruong: string;
+    heDaoTao: string;
+    diaChi: string;
+    sdt: string;
+    email: string;
+    website: string;
+    facebook: string;
+  };
+  thongTinTuyenSinh: {
+    thoiGianXetTuyen: string;
+    doiTuongTuyenSinh: string;
+    phamViTuyenSinh: string;
+    phuongThucTuyenSinh: string;
+    nguongDauVao: string;
+    hocPhi: string;
+  };
+  nganhTuyenSinh: Array<{
+    stt: string;
+    tenNganh: string;
+    maNganh: string;
+    toHopXetTuyen: string;
+    chiTieu: string;
+    [key: string]: any;
+  }>;
+  diemChuan: Array<{
+    stt: string;
+    tenNganh: string;
+    nam2021: string;
+    nam2022: string;
+    nam2023: string;
+    nam2024: string;
+  }>;
+}
 export default function UniversitiesPage() {
-  const universities = universitiesData;
-
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      try {
+        const response = await api.get("/school/api/university");
+        console.log(response);
+        setUniversities(response.data.data);
+      } catch (err: any) {
+        setError(err.message || "Lỗi khi lấy dữ liệu");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUniversities();
+  }, []);
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -62,7 +119,7 @@ export default function UniversitiesPage() {
           {universities.map((university) => (
             <Link
               key={university.id}
-              to={`/university-details/${university.id}`}
+              to={`/university-details/${university.name}`}
             >
               <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group border-l-4 border-l-blue-500">
                 <CardContent className="p-6">
@@ -82,15 +139,15 @@ export default function UniversitiesPage() {
                         </h3>
                       </div>
                       <p className="text-gray-600 mb-3 line-clamp-2">
-                        Mã trường: {university.thong_tin_chung.ma_truong}
+                        Mã trường: {university.thongTinChung.maTruong}
                       </p>
                       <p className="text-gray-600 mb-3 line-clamp-2">
-                        {university.thong_tin_chung.ten_tieng_anh}
+                        {university.thongTinChung.tenTiengAnh}
                       </p>
                       <div className="flex items-center text-gray-500 mb-3">
                         <MapPin className="w-4 h-4 mr-2" />
                         <span className="text-sm">
-                          {university.thong_tin_chung.dia_chi}
+                          {university.thongTinChung.diaChi}
                         </span>
                       </div>
                     </div>

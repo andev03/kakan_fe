@@ -21,65 +21,81 @@ import {
 import universitiesData from "../data/all_schools_info.json";
 import Header from "../components/header";
 import { useParams } from "react-router-dom";
+import { api } from "../hooks/api";
 interface University {
   id: string;
   name: string;
   url: string;
-  thong_tin_chung: {
-    ten_truong: string;
-    ten_tieng_anh: string;
-    ma_truong: string;
-    loai_truong: string;
-    he_dao_tao: string;
-    dia_chi: string;
+  thongTinChung: {
+    tenTruong: string;
+    tenTiengAnh: string;
+    maTruong: string;
+    loaiTruong: string;
+    heDaoTao: string;
+    diaChi: string;
     sdt: string;
     email: string;
     website: string;
     facebook: string;
   };
-  thong_tin_tuyen_sinh: {
-    thoi_gian_xet_tuyen: string;
-    doi_tuong_tuyen_sinh: string;
-    pham_vi_tuyen_sinh: string;
-    phuong_thuc_tuyen_sinh: string;
-    nguong_dau_vao: string;
-    hoc_phi: string;
+  thongTinTuyenSinh: {
+    thoiGianXetTuyen: string;
+    doiTuongTuyenSinh: string;
+    phamViTuyenSinh: string;
+    phuongThucTuyenSinh: string;
+    nguongDauVao: string;
+    hocPhi: string;
   };
-  nganh_tuyen_sinh: any[];
-  diem_chuan: any[];
+  nganhTuyenSinh: Array<{
+    stt: string;
+    tenNganh: string;
+    maNganh: string;
+    toHopXetTuyen: string;
+    chiTieu: string;
+    [key: string]: any;
+  }>;
+  diemChuan: Array<{
+    stt: string;
+    tenNganh: string;
+    nam2021: string;
+    nam2022: string;
+    nam2023: string;
+    nam2024: string;
+  }>;
 }
 
-export default function UniversityDetails() {
-  const { id } = useParams();
-  const [universities] = useState<University[]>(
-    universitiesData.map((uni) => ({
-      ...uni,
-      id: String(uni.id),
-    }))
-  );
+export default function UniversityDetail() {
+  const { name } = useParams(); // URL dạng /university/:id, ở đây `id` chính là `name`
   const [selectedUniversity, setSelectedUniversity] =
     useState<University | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    const university = universities.find((uni) => uni.id === id);
-    if (university) {
-      setSelectedUniversity(university);
-    }
-  }, [id, universities]);
+    const fetchUniversity = async () => {
+      try {
+        const response = await api.get(`/school/api/university/search`, {
+          params: { name },
+        });
+        console.log(name);
+        if (response.data?.data) {
+          setSelectedUniversity(response.data.data);
+          console.log(response.data.data);
+        } else {
+          setError("University not found");
+        }
+      } catch (err: any) {
+        setError("Error fetching university");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (name) fetchUniversity();
+  }, [name]);
 
   console.log(selectedUniversity);
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "Công lập":
-        return "bg-green-100 text-green-800";
-      case "Dân lập":
-        return "bg-blue-100 text-blue-800";
-      case "Quân sự":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   if (selectedUniversity) {
     return (
@@ -110,22 +126,20 @@ export default function UniversityDetails() {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-3xl mb-2">
-                      {selectedUniversity.thong_tin_chung.ten_truong}
+                      {selectedUniversity.thongTinChung.tenTruong}
                     </CardTitle>
                     <CardDescription className="text-lg">
-                      {selectedUniversity.thong_tin_chung.ten_tieng_anh}
+                      {selectedUniversity.thongTinChung.tenTiengAnh}
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
                     <Badge
-                      className={getTypeColor(
-                        selectedUniversity.thong_tin_chung.loai_truong
-                      )}
+                      className={selectedUniversity.thongTinChung.loaiTruong}
                     >
-                      {selectedUniversity.thong_tin_chung.loai_truong}
+                      {selectedUniversity.thongTinChung.loaiTruong}
                     </Badge>
                     <Badge variant="outline">
-                      {selectedUniversity.thong_tin_chung.ma_truong}
+                      {selectedUniversity.thongTinChung.maTruong}
                     </Badge>
                   </div>
                 </div>
@@ -138,46 +152,46 @@ export default function UniversityDetails() {
                       <div>
                         <p className="font-medium">Địa chỉ</p>
                         <p className="text-gray-600">
-                          {selectedUniversity.thong_tin_chung.dia_chi}
+                          {selectedUniversity.thongTinChung.diaChi}
                         </p>
                       </div>
                     </div>
-                    {selectedUniversity.thong_tin_chung.sdt && (
+                    {selectedUniversity.thongTinChung.sdt && (
                       <div className="flex items-center space-x-3">
                         <Phone className="w-5 h-5 text-gray-500" />
                         <div>
                           <p className="font-medium">Điện thoại</p>
                           <p className="text-gray-600">
-                            {selectedUniversity.thong_tin_chung.sdt}
+                            {selectedUniversity.thongTinChung.sdt}
                           </p>
                         </div>
                       </div>
                     )}
                   </div>
                   <div className="space-y-4">
-                    {selectedUniversity.thong_tin_chung.email && (
+                    {selectedUniversity.thongTinChung.email && (
                       <div className="flex items-center space-x-3">
                         <Mail className="w-5 h-5 text-gray-500" />
                         <div>
                           <p className="font-medium">Email</p>
                           <p className="text-gray-600">
-                            {selectedUniversity.thong_tin_chung.email}
+                            {selectedUniversity.thongTinChung.email}
                           </p>
                         </div>
                       </div>
                     )}
-                    {selectedUniversity.thong_tin_chung.website && (
+                    {selectedUniversity.thongTinChung.website && (
                       <div className="flex items-center space-x-3">
                         <Globe className="w-5 h-5 text-gray-500" />
                         <div>
                           <p className="font-medium">Website</p>
                           <a
-                            href={selectedUniversity.thong_tin_chung.website}
+                            href={selectedUniversity.thongTinChung.website}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:underline"
                           >
-                            {selectedUniversity.thong_tin_chung.website}
+                            {selectedUniversity.thongTinChung.website}
                           </a>
                         </div>
                       </div>
@@ -187,7 +201,7 @@ export default function UniversityDetails() {
                       <div>
                         <p className="font-medium">Hệ đào tạo</p>
                         <p className="text-gray-600">
-                          {selectedUniversity.thong_tin_chung.he_dao_tao}
+                          {selectedUniversity.thongTinChung.heDaoTao}
                         </p>
                       </div>
                     </div>
@@ -203,35 +217,27 @@ export default function UniversityDetails() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {selectedUniversity.thong_tin_tuyen_sinh
-                    .doi_tuong_tuyen_sinh && (
+                  {selectedUniversity.thongTinTuyenSinh.doiTuongTuyenSinh && (
                     <div>
                       <h4 className="font-medium mb-2">Đối tượng tuyển sinh</h4>
                       <p className="text-gray-600 text-sm">
-                        {
-                          selectedUniversity.thong_tin_tuyen_sinh
-                            .doi_tuong_tuyen_sinh
-                        }
+                        {selectedUniversity.thongTinTuyenSinh.doiTuongTuyenSinh}
                       </p>
                     </div>
                   )}
-                  {selectedUniversity.thong_tin_tuyen_sinh
-                    .pham_vi_tuyen_sinh && (
+                  {selectedUniversity.thongTinTuyenSinh.phamViTuyenSinh && (
                     <div>
                       <h4 className="font-medium mb-2">Phạm vi tuyển sinh</h4>
                       <p className="text-gray-600 text-sm">
-                        {
-                          selectedUniversity.thong_tin_tuyen_sinh
-                            .pham_vi_tuyen_sinh
-                        }
+                        {selectedUniversity.thongTinTuyenSinh.phamViTuyenSinh}
                       </p>
                     </div>
                   )}
-                  {selectedUniversity.thong_tin_tuyen_sinh.hoc_phi && (
+                  {selectedUniversity.thongTinTuyenSinh.hocPhi && (
                     <div>
                       <h4 className="font-medium mb-2">Học phí</h4>
                       <p className="text-gray-600 text-sm">
-                        {selectedUniversity.thong_tin_tuyen_sinh.hoc_phi}
+                        {selectedUniversity.thongTinTuyenSinh.hocPhi}
                       </p>
                     </div>
                   )}
@@ -240,8 +246,8 @@ export default function UniversityDetails() {
             </Card>
 
             {/* Majors */}
-            {selectedUniversity.nganh_tuyen_sinh &&
-              selectedUniversity.nganh_tuyen_sinh.length > 0 && (
+            {selectedUniversity.nganhTuyenSinh &&
+              selectedUniversity.nganhTuyenSinh.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Ngành tuyển sinh</CardTitle>
@@ -269,26 +275,24 @@ export default function UniversityDetails() {
                           </tr>
                         </thead>
                         <tbody>
-                          {selectedUniversity.nganh_tuyen_sinh
-                            .filter((major) => major.STT)
+                          {selectedUniversity.nganhTuyenSinh
+                            .filter((major) => major.stt)
                             .map((major, index) => (
                               <tr key={index} className="hover:bg-gray-50">
                                 <td className="border border-gray-300 px-4 py-2">
-                                  {major.STT}
+                                  {major.stt}
                                 </td>
                                 <td className="border border-gray-300 px-4 py-2">
-                                  {major.ten_nganh}
+                                  {major.tenNganh}
                                 </td>
                                 <td className="border border-gray-300 px-4 py-2">
-                                  {major.ma_nganh}
+                                  {major.maNganh}
                                 </td>
                                 <td className="border border-gray-300 px-4 py-2">
-                                  {major.to_hop_xet_tuyen}
+                                  {major.toHopXetTuyen}
                                 </td>
                                 <td className="border border-gray-300 px-4 py-2">
-                                  {major.chi_tieu
-                                    ? major.chi_tieu
-                                    : major.ghi_chu}
+                                  {major.chiTieu ? major.chiTieu : major.ghiChu}
                                 </td>
                               </tr>
                             ))}
@@ -300,8 +304,8 @@ export default function UniversityDetails() {
               )}
 
             {/* Scores */}
-            {selectedUniversity.diem_chuan &&
-              selectedUniversity.diem_chuan.length > 0 && (
+            {selectedUniversity.diemChuan &&
+              selectedUniversity.diemChuan.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Điểm chuẩn các năm</CardTitle>
@@ -332,27 +336,27 @@ export default function UniversityDetails() {
                           </tr>
                         </thead>
                         <tbody>
-                          {selectedUniversity.diem_chuan
-                            .filter((score) => score.STT)
+                          {selectedUniversity.diemChuan
+                            .filter((score) => score.stt)
                             .map((score, index) => (
                               <tr key={index} className="hover:bg-gray-50">
                                 <td className="border border-gray-300 px-4 py-2">
-                                  {score.STT}
+                                  {score.stt}
                                 </td>
                                 <td className="border border-gray-300 px-4 py-2">
-                                  {score.ten_nganh}
+                                  {score.tenNganh}
                                 </td>
                                 <td className="border border-gray-300 px-4 py-2">
-                                  {score.nam_2021}
+                                  {score.nam2021}
                                 </td>
                                 <td className="border border-gray-300 px-4 py-2">
-                                  {score.nam_2022}
+                                  {score.nam2022}
                                 </td>
                                 <td className="border border-gray-300 px-4 py-2">
-                                  {score.nam_2023}
+                                  {score.nam2023}
                                 </td>
                                 <td className="border border-gray-300 px-4 py-2">
-                                  {score.nam_2024}
+                                  {score.nam2024}
                                 </td>
                               </tr>
                             ))}
@@ -408,18 +412,18 @@ export default function UniversityDetails() {
   //               <div className="flex items-start justify-between">
   //                 <div className="flex-1">
   //                   <CardTitle className="text-lg mb-2 line-clamp-2">
-  //                     {university.thong_tin_chung.ten_truong}
+  //                     {university.thongTinChung.ten_truong}
   //                   </CardTitle>
   //                   <CardDescription className="text-sm">
-  //                     {university.thong_tin_chung.ten_tieng_anh}
+  //                     {university.thongTinChung.ten_tieng_anh}
   //                   </CardDescription>
   //                 </div>
   //                 <Badge
   //                   className={getTypeColor(
-  //                     university.thong_tin_chung.loai_truong
+  //                     university.thongTinChung.loai_truong
   //                   )}
   //                 >
-  //                   {university.thong_tin_chung.loai_truong}
+  //                   {university.thongTinChung.loai_truong}
   //                 </Badge>
   //               </div>
   //             </CardHeader>
@@ -428,15 +432,15 @@ export default function UniversityDetails() {
   //                 <div className="flex items-start space-x-2">
   //                   <MapPin className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
   //                   <p className="text-sm text-gray-600 line-clamp-2">
-  //                     {university.thong_tin_chung.dia_chi}
+  //                     {university.thongTinChung.dia_chi}
   //                   </p>
   //                 </div>
 
-  //                 {university.thong_tin_chung.sdt && (
+  //                 {university.thongTinChung.sdt && (
   //                   <div className="flex items-center space-x-2">
   //                     <Phone className="w-4 h-4 text-gray-500" />
   //                     <p className="text-sm text-gray-600">
-  //                       {university.thong_tin_chung.sdt}
+  //                       {university.thongTinChung.sdt}
   //                     </p>
   //                   </div>
   //                 )}
@@ -444,7 +448,7 @@ export default function UniversityDetails() {
   //                 <div className="flex items-center space-x-2">
   //                   <GraduationCap className="w-4 h-4 text-gray-500" />
   //                   <p className="text-sm text-gray-600 line-clamp-1">
-  //                     {university.thong_tin_chung.he_dao_tao}
+  //                     {university.thongTinChung.he_dao_tao}
   //                   </p>
   //                 </div>
 

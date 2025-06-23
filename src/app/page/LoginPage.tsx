@@ -11,10 +11,13 @@ import { api } from "../hooks/api";
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const { login } = useUser();
 
   const navigate = useNavigate();
 
@@ -27,34 +30,29 @@ export default function LoginPage() {
   };
 
   const handleLogin = async () => {
-    if (formData.email === "user@gmail.com" && formData.password === "123") {
-      localStorage.setItem("email", formData.email);
-      navigate("/");
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const response = await api.post("/api/login", formData);
+      const { token, user } = response.data;
+
+      if (token && user) {
+        login(user, token);
+        navigate("/");
+      } else {
+        setError("Đăng nhập thất bại: Thiếu token hoặc thông tin người dùng.");
+      }
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Có lỗi xảy ra. Vui lòng thử lại sau!");
+      }
+      console.error("Login error:", err);
+    } finally {
+      setIsLoading(false);
     }
-    //  const handleLogin = async () => {
-    // setError("");
-    // setIsLoading(true);
-
-    // try {
-    //   const response = await api.post("/api/login", formData);
-    //   const { token, user } = response.data;
-
-    //   if (token && user) {
-    //     login(user, token);
-    //     navigate("/");
-    //   } else {
-    //     setError("Đăng nhập thất bại: Thiếu token hoặc thông tin người dùng.");
-    //   }
-    // } catch (err: any) {
-    //   if (err.response?.data?.message) {
-    //     setError(err.response.data.message);
-    //   } else {
-    //     setError("Có lỗi xảy ra. Vui lòng thử lại sau!");
-    //   }
-    //   console.error("Login error:", err);
-    // } finally {
-    //   setIsLoading(false);
-    // }
   };
 
   return (
@@ -254,4 +252,3 @@ export default function LoginPage() {
     </div>
   );
 }
-// }
