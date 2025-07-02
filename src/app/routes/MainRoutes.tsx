@@ -10,11 +10,14 @@ import ForumPage from "../page/forum/ForumPage";
 import ForumDetail from "../page/forum/ForumDetail";
 import ForumPost from "../page/forum/ForumPost";
 import UniversityDetail from "../page/UniversityDetails";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const MainRoutes = () => {
   return (
     <>
       <BrowserRouter>
+        <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -29,7 +32,7 @@ const MainRoutes = () => {
             path="/university-details/:name"
             element={<UniversityDetail />}
           />
-          <Route path="/forum-details/:id" element={<ForumDetail />} />
+          <Route path="/forum-details/:postId" element={<ForumDetail />} />
         </Routes>
       </BrowserRouter>
     </>

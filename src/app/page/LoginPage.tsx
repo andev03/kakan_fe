@@ -7,51 +7,124 @@ import LogoName from "../components/logoName";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../hooks/userContext";
 import { api } from "../hooks/api";
+import { toast } from "react-toastify";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const navigate = useNavigate();
+
   const { login } = useUser();
 
-  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
+
+  const [formRegister, setFormRegister] = useState({
+    fullName: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    gender: true,
+    dob: "",
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
     }));
   };
 
-  const handleLogin = async () => {
+  const handleChangeRegister = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormRegister((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setError("");
     setIsLoading(true);
 
     try {
-      const response = await api.post("/api/login", formData);
-      const { token, user } = response.data;
-
-      if (token && user) {
-        login(user, token);
-        navigate("/");
+      const response = await api.post("/user/api/login", {
+        username: formData.username,
+        password: formData.password,
+      });
+      console.log("dang nhap", response);
+      const { data } = response.data;
+      if (response.data.status === 401) {
+        toast.error(response.data.message);
+      }
+      if (data) {
+        login(data);
+        const role = data.role;
+        switch (role[0]) {
+          case "ADMIN":
+            navigate("/admin");
+            break;
+          case "STUDENT":
+            navigate("/");
+            break;
+          default:
+            navigate("/");
+        }
       } else {
-        setError("Đăng nhập thất bại: Thiếu token hoặc thông tin người dùng.");
+        setError("Đăng nhập thất bại: Không có dữ liệu người dùng.");
       }
     } catch (err: any) {
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else {
-        setError("Có lỗi xảy ra. Vui lòng thử lại sau!");
-      }
+      setError(
+        err.response?.data?.message || "Có lỗi xảy ra. Vui lòng thử lại sau!"
+      );
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async () => {
+    const { username, fullName, email, password, confirmPassword, dob } =
+      formRegister;
+
+    if (
+      !username ||
+      !fullName ||
+      !email ||
+      !password ||
+      !confirmPassword ||
+      !dob
+    ) {
+      toast.warn(" Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("❌ Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    try {
+      const res = await api.post("/user/api/register", {
+        ...formRegister,
+        // convert string → boolean
+      });
+      console.log(res);
+      if (res.data.status === 200) {
+        toast.success("🎉 Đăng ký thành công, vui lòng đăng nhập!");
+        setActiveTab("login");
+      } else {
+        toast.error(res.data.message || "Đăng ký thất bại.");
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Đăng ký thất bại!");
     }
   };
 
@@ -145,13 +218,13 @@ export default function LoginPage() {
 
               {/* Login Tab */}
               {activeTab === "login" && (
-                <form>
+                <form onSubmit={handleLogin}>
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <input
-                        type="email"
-                        name="email"
-                        placeholder="Email"
+                        type="text"
+                        name="username"
+                        placeholder="Tên đăng nhập"
                         onChange={handleChange}
                         className="w-full h-12 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                       />
@@ -188,7 +261,6 @@ export default function LoginPage() {
                     </div>
 
                     <button
-                      onClick={handleLogin}
                       type="submit"
                       className="w-full h-12 mt-2 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-md cursor-pointer"
                     >
@@ -204,7 +276,19 @@ export default function LoginPage() {
                   <div className="space-y-2">
                     <input
                       type="text"
+                      name="fullName"
                       placeholder="Họ và tên"
+                      onChange={handleChangeRegister}
+                      className="w-full h-12 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      name="username"
+                      placeholder="Tên đăng nhập"
+                      onChange={handleChangeRegister}
                       className="w-full h-12 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                     />
                   </div>
@@ -212,7 +296,9 @@ export default function LoginPage() {
                   <div className="space-y-2">
                     <input
                       type="email"
+                      name="email"
                       placeholder="Email"
+                      onChange={handleChangeRegister}
                       className="w-full h-12 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                     />
                   </div>
@@ -220,7 +306,9 @@ export default function LoginPage() {
                   <div className="space-y-2 relative">
                     <input
                       type={showPassword ? "text" : "password"}
+                      name="password"
                       placeholder="Mật khẩu"
+                      onChange={handleChangeRegister}
                       className="w-full h-12 px-3 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                     />
                     <button
@@ -236,7 +324,66 @@ export default function LoginPage() {
                     </button>
                   </div>
 
-                  <button className="w-full h-12 mt-2 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-md cursor-pointer">
+                  <div className="space-y-2">
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      placeholder="Xác nhận mật khẩu"
+                      onChange={handleChangeRegister}
+                      className="w-full h-12 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm text-gray-600">Giới tính</label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          name="gender"
+                          value="true"
+                          checked={formRegister.gender === true}
+                          onChange={() =>
+                            setFormRegister((prev) => ({
+                              ...prev,
+                              gender: true,
+                            }))
+                          }
+                        />
+                        Nam
+                      </label>
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          name="gender"
+                          value="false"
+                          checked={formRegister.gender === false}
+                          onChange={() =>
+                            setFormRegister((prev) => ({
+                              ...prev,
+                              gender: false,
+                            }))
+                          }
+                        />
+                        Nữ
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <input
+                      type="date"
+                      name="dob"
+                      onChange={handleChangeRegister}
+                      className="w-full h-12 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleRegister}
+                    type="button"
+                    className="w-full h-12 mt-2 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-md cursor-pointer"
+                  >
                     Đăng ký
                   </button>
                 </div>

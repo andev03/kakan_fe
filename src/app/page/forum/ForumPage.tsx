@@ -30,6 +30,8 @@ import {
   TabsTrigger,
 } from "../../components/ui/tabs";
 import Header from "../../components/header";
+import { useEffect, useState } from "react";
+import { api } from "../../hooks/api";
 
 // Dữ liệu mẫu cho các bài đăng diễn đàn
 const forumPosts = [
@@ -115,6 +117,19 @@ const forumPosts = [
   },
 ];
 
+interface PostDto {
+  id: string;
+  title: string;
+  accountName: string;
+  content: string;
+  likeCount: number;
+  commentCount: number;
+  status: string;
+  createdAt: string;
+  topicName: string;
+  liked: boolean;
+}
+
 // Dữ liệu mẫu cho các chủ đề phổ biến
 const popularTopics = [
   { name: "Điểm chuẩn", count: 156 },
@@ -127,6 +142,43 @@ const popularTopics = [
 
 export default function ForumPage() {
   const navigate = useNavigate();
+  const [posts, setPosts] = useState<PostDto[]>([]);
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+
+        const storedUser = localStorage.getItem("user");
+
+        let res;
+
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          const accountId = parseInt(user?.id); // hoặc Number(user.id)
+          res = await api.get(`/forum/api/posts/all/${accountId}`);
+          console.log(res);
+        } else {
+          res = await api.get("/forum/api/posts/admin");
+        }
+
+        if (res.data && res.data.data) {
+          setPosts(res.data.data);
+        } else {
+          throw new Error("Invalid data format from API");
+        }
+      } catch (err: any) {
+        console.error("Error fetching posts:", err);
+        setError(err.message || "Failed to fetch posts");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -142,7 +194,6 @@ export default function ForumPage() {
                 Nơi chia sẻ và trao đổi thông tin tuyển sinh
               </p>
             </div>
-
           </div>
         </div>
       </section>
@@ -175,13 +226,13 @@ export default function ForumPage() {
               <TabsContent value="all">
                 {/* Posts List */}
                 <div className="space-y-6">
-                  {forumPosts.map((post) => (
+                  {posts.map((post) => (
                     <Link key={post.id} to={`/forum-details/${post.id}`}>
                       <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
                         <CardHeader className="pb-2">
                           <div className="flex justify-between">
                             <div className="flex items-center space-x-4">
-                              <Avatar>
+                              {/* <Avatar>
                                 <AvatarImage
                                   src={post.author.avatar || "/placeholder.svg"}
                                   alt={post.author.name}
@@ -189,25 +240,25 @@ export default function ForumPage() {
                                 <AvatarFallback>
                                   {post.author.name.charAt(0)}
                                 </AvatarFallback>
-                              </Avatar>
+                              </Avatar> */}
                               <div>
                                 <p className="text-sm font-medium">
-                                  {post.author.name}
+                                  {post.accountName}
                                 </p>
                                 <div className="flex items-center text-xs text-gray-500">
                                   <Clock className="w-3 h-3 mr-1" />
-                                  {post.createdAt}
+                                  {new Date(post.createdAt).toLocaleString(
+                                    "vi-VN"
+                                  )}
                                 </div>
                               </div>
                             </div>
-                            {post.isHot && (
-                              <Badge
-                                variant="destructive"
-                                className="bg-orange-500"
-                              >
-                                HOT
-                              </Badge>
-                            )}
+                            <Badge
+                              variant="destructive"
+                              className="bg-orange-500"
+                            >
+                              HOT
+                            </Badge>
                           </div>
                         </CardHeader>
                         <CardContent>
@@ -218,7 +269,8 @@ export default function ForumPage() {
                             {post.content}
                           </p>
                           <div className="flex flex-wrap gap-2">
-                            {post.tags.map((tag, index) => (
+                            {/* topic  */}
+                            {/* {post.tags.map((tag, index) => (
                               <Badge
                                 key={index}
                                 variant="secondary"
@@ -227,24 +279,35 @@ export default function ForumPage() {
                                 <Tag className="w-3 h-3 mr-1" />
                                 {tag}
                               </Badge>
-                            ))}
+                            ))} */}
                           </div>
                         </CardContent>
                         <CardFooter className="border-t pt-4">
                           <div className="flex justify-between w-full text-sm text-gray-500">
                             <div className="flex space-x-6">
-                              <div className="flex items-center">
-                                <ThumbsUp className="w-4 h-4 mr-1" />
-                                {post.likes}
+                              <div className="flex space-x-4">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="flex items-center"
+                                >
+                                  <ThumbsUp
+                                    className={`w-4 h-4 mr-2 ${
+                                      post?.liked
+                                        ? "text-blue-500"
+                                        : "text-gray-500"
+                                    }`}
+                                    fill={post?.liked ? "#3b82f6" : "none"} // Màu nền khi đã thích
+                                  />
+                                  {post?.liked ? "Đã thích" : "Thích"} 
+                                  
+                                   ({post.likeCount})
+                                </Button>
                               </div>
                               <div className="flex items-center">
                                 <MessageCircle className="w-4 h-4 mr-1" />
-                                {post.comments}
+                                {post.commentCount}
                               </div>
-                            </div>
-                            <div className="flex items-center">
-                              <Eye className="w-4 h-4 mr-1" />
-                              {post.views} lượt xem
                             </div>
                           </div>
                         </CardFooter>

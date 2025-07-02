@@ -2,14 +2,18 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface User {
+  id: string, 
   email: string;
+  userNamae: string;
+  role:string;
+  token: string;
   // thêm các trường khác nếu cần, ví dụ: id, role, name...
 }
 
 interface UserContextType {
   user: User | null;
   token: string | null;
-  login: (userData: User, token: string) => void;
+  login: (userData: User) => void;
   logout: () => void;
 }
 
@@ -31,10 +35,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  const login = (userData: User, token: string) => {
+  const login = (userData: User) => {
     setUser(userData);
-    setToken(token);
-    localStorage.setItem("token", token);
+    setToken(userData.token);
+    localStorage.setItem("token", userData.token);
     localStorage.setItem("user", JSON.stringify(userData));
   };
 

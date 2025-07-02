@@ -1,8 +1,13 @@
 import { useState } from "react";
 import LogoName from "./logoName";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { Button } from "../components/ui/button";
+import { Users, Menu, X, ChevronDown, Gavel, User } from "lucide-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
+import { useUser } from "../hooks/userContext";
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { logout } = useUser();
   const navigate = useNavigate();
   const menuItems = [
     { label: "Diễn đàn", path: "/forum" },
@@ -10,10 +15,14 @@ export default function Header() {
     { label: "Tính điểm", path: "/calculate" },
     { label: "Liên hệ", path: "/contact" },
   ];
-  const email = localStorage.getItem("email");
+  const user = localStorage.getItem("user");
   const handleLogin = () => {
     navigate("/login");
   };
+  const handleLogout = () => {
+  logout(); // Xóa token và user khỏi localStorage + state
+  navigate("/login"); // Điều hướng về trang login (hoặc trang chủ)
+};
   return (
     <header className=" bg-white border-b sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -36,7 +45,7 @@ export default function Header() {
                 {item.label}
               </button>
             ))}
-            {!email ? (
+            {!user ? (
               <button
                 onClick={handleLogin}
                 className="ml-2 px-4 py-2 text-sm bg-sky-500 hover:bg-sky-600 text-white rounded-md transition-colors cursor-pointer"
@@ -44,12 +53,35 @@ export default function Header() {
                 Đăng nhập
               </button>
             ) : (
-              <button
-                onClick={() => navigate("/register-premium")}
-                className="ml-2 px-4 py-2 text-sm bg-sky-500 hover:bg-sky-600 text-white rounded-md transition-colors cursor-pointer"
-              >
-                Đăng ký Premium
-              </button>
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => navigate("/register-premium")}
+                  className="px-4 py-2 text-sm bg-sky-500 hover:bg-sky-600 text-white rounded-md transition-colors cursor-pointer"
+                >
+                  Đăng ký Premium
+                </button>
+
+                <HoverCard openDelay={100} closeDelay={100}>
+                  <HoverCardTrigger className="flex items-center space-x-1 cursor-pointer px-3 py-2 hover:bg-gray-100 rounded-md transition">
+                    <User className="w-5 h-5 text-gray-700" />
+                    <ChevronDown className="w-4 h-4 text-gray-700" />
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-56 p-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                    <Link
+                      to="/customer/dashboard"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:rounded-xl"
+                    >
+                      Thông tin cá nhân
+                    </Link>
+                    <div className="border-t border-gray-100 my-1" />
+                    <button
+                    onClick={handleLogout}
+                     className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100 hover:rounded-xl">
+                      Đăng xuất
+                    </button>
+                  </HoverCardContent>
+                </HoverCard>
+              </div>
             )}
           </nav>
           <button

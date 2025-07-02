@@ -31,12 +31,7 @@ import Header from "../../components/header";
 import { useEffect, useState } from "react";
 import Footer from "../../components/footer";
 import UnAuthenticatedPage from "../../components/unAuthenticatedPage";
-
-interface PostPageProps {
-  params: {
-    id: string;
-  };
-}
+import { api } from "../../hooks/api";
 
 // Dữ liệu mẫu cho chi tiết bài đăng
 const postData = {
@@ -60,77 +55,141 @@ const postData = {
 };
 
 // Dữ liệu mẫu cho các bình luận
-const comments = [
-  {
-    id: 1,
-    author: {
-      name: "Trần Thị B",
-      avatar: "/placeholder.svg?height=40&width=40",
-      role: "Sinh viên Y1",
-    },
-    content:
-      "Chào bạn, mình là sinh viên năm nhất ngành Y đa khoa. Theo kinh nghiệm của mình, điểm chuẩn Y đa khoa thường dao động từ 26-28 điểm như bạn đã nói. Năm nay có thể sẽ tăng nhẹ do xu hướng nhiều học sinh đăng ký vào ngành Y.\n\nVề phương thức xét tuyển, trường mình có 3 phương thức chính:\n1. Xét điểm thi THPT (70% chỉ tiêu)\n2. Xét học bạ (20% chỉ tiêu)\n3. Xét tuyển thẳng và ưu tiên (10% chỉ tiêu)\n\nBạn nên chuẩn bị kỹ cho kỳ thi THPT vì đây vẫn là phương thức chính nhé!",
-    createdAt: "1 giờ trước",
-    likes: 8,
-  },
-  {
-    id: 2,
-    author: {
-      name: "Lê Văn C",
-      avatar: "/placeholder.svg?height=40&width=40",
-      role: "Giáo viên THPT",
-    },
-    content:
-      "Theo nhận định của mình, điểm chuẩn Y Dược năm 2025 có thể sẽ tăng nhẹ khoảng 0.5-1 điểm so với năm 2024. Lý do là số lượng thí sinh đăng ký vào ngành Y ngày càng nhiều, trong khi chỉ tiêu không tăng nhiều.\n\nBạn nên đặt mục tiêu từ 27.5 điểm trở lên để đảm bảo cơ hội trúng tuyển nhé.",
-    createdAt: "45 phút trước",
-    likes: 5,
-  },
-  {
-    id: 3,
-    author: {
-      name: "Phạm Thị D",
-      avatar: "/placeholder.svg?height=40&width=40",
-      role: "Sinh viên Y3",
-    },
-    content:
-      "Mình bổ sung thêm là ngoài điểm số, bạn cũng nên quan tâm đến việc chuẩn bị hồ sơ xét tuyển thật kỹ. Đặc biệt nếu bạn xét học bạ, cần đảm bảo điểm trung bình các môn xét tuyển đạt từ 8.0 trở lên trong 5 học kỳ THPT.\n\nNếu bạn có thành tích tốt trong các kỳ thi học sinh giỏi cấp tỉnh/thành phố trở lên, hãy cân nhắc phương thức xét tuyển thẳng.",
-    createdAt: "30 phút trước",
-    likes: 3,
-  },
-];
 
 // Dữ liệu mẫu cho các bài viết liên quan
-const relatedPosts = [
-  {
-    id: 2,
-    title: "Kinh nghiệm ôn thi khối B đạt điểm cao",
-    comments: 24,
-    views: 320,
-  },
-  {
-    id: 3,
-    title: "So sánh chất lượng đào tạo Y khoa giữa các trường",
-    comments: 18,
-    views: 256,
-  },
-  {
-    id: 4,
-    title: "Học Y Dược ra trường làm gì?",
-    comments: 32,
-    views: 412,
-  },
-];
+
+interface PostDto {
+  id: string;
+  title: string;
+  accountName: string;
+  content: string;
+  likeCount: number;
+  commentCount: number;
+  status: string;
+  createdAt: string;
+  topicName: string;
+  liked: boolean;
+  userInformationDto: UserInformationDto;
+}
+interface CommentDto {
+  id: string;
+  accountId: number;
+  content: string;
+  createdAt: string;
+  accountName: string;
+}
+
+interface UserInformationDto {
+  accountId: number;
+  fullName: string;
+  avatarUrl: string;
+  dob: string;
+  gender: boolean;
+  address: string;
+  phone: string;
+}
 
 export default function PostPage() {
-  const postId = useParams();
+  const { postId } = useParams();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [accountId, setAccountId] = useState<number | null>(null);
   const navigate = useNavigate();
+  const [comments, setComments] = useState<CommentDto[]>([]);
+  const [commentContent, setCommentContent] = useState("");
+
+  const [post, setPost] = useState<PostDto | null>(null);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    const userString = localStorage.getItem("user");
+    if (userString) {
+      const user = JSON.parse(userString);
+      setIsAuthenticated(true);
+      setAccountId(user.id);
+      console.log("Đã load user từ localStorage:", user.id);
+    } else {
+      setIsAuthenticated(false);
+      setAccountId(null);
+    }
+  }, []);
+
+  const fetchPost = async () => {
+    try {
+      console.log("id", postId);
+      const response = await api.get(`/forum/api/post/${postId}/${accountId}`);
+      console.log("post", response);
+
+      if (response.status === 200) {
+        setPost(response.data.data);
+        // Dữ liệu thực tế nằm trong `data.data`
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy bài viết:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Check if user has email in localStorage
-    const email = localStorage.getItem("email");
-    setIsAuthenticated(!!email);
-  }, []);
+    if (postId && accountId) {
+      fetchPost();
+    }
+  }, [postId, accountId]);
+
+  const fetchComments = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/forum/api/comments/${postId}`);
+      if (res.data && res.data.data) {
+        setComments(res.data.data);
+        console.log("comment", res);
+      } else {
+        throw new Error("Invalid comment data");
+      }
+    } catch (err: any) {
+      console.error("Error loading comments:", err);
+      setError(err.message || "Failed to load comments");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (postId) {
+      fetchComments();
+    }
+  }, [postId]);
+
+  const handleLike = async () => {
+    try {
+      if (!postId || !accountId) return;
+
+      await api.put(`/forum/api/post/${postId}/${accountId}/like`);
+
+      // Fetch lại dữ liệu bài viết để cập nhật likeCount & isLikedByCurrentUser
+      fetchPost();
+    } catch (error) {
+      console.error("Lỗi khi like:", error);
+    }
+  };
+
+  const handlePostComment = async () => {
+    if (!commentContent.trim()) return;
+
+    try {
+      const res = await api.post(`/forum/api/comment/${postId}`, {
+        message: commentContent,
+        accountId: accountId, // nếu backend cần thêm accountId
+      });
+
+      console.log("Bình luận thành công:", res);
+      setCommentContent(""); // Xoá nội dung trong Textarea sau khi gửi
+      fetchComments(); // Gọi lại API để hiển thị bình luận mới
+    } catch (err) {
+      console.error("Lỗi khi gửi bình luận:", err);
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-gray-50">
       <Header />
@@ -160,10 +219,8 @@ export default function PostPage() {
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h1 className="text-2xl font-bold mb-2">
-                        {postData.title}
-                      </h1>
-                      <div className="flex flex-wrap gap-2 mb-4">
+                      <h1 className="text-2xl font-bold mb-2">{post?.title}</h1>
+                      {/* <div className="flex flex-wrap gap-2 mb-4">
                         {postData.tags.map((tag, index) => (
                           <Badge
                             key={index}
@@ -174,16 +231,11 @@ export default function PostPage() {
                             {tag}
                           </Badge>
                         ))}
-                      </div>
+                      </div> */}
                     </div>
-                    {postData.isHot && (
-                      <Badge variant="destructive" className="bg-orange-500">
-                        HOT
-                      </Badge>
-                    )}
                   </div>
                   <div className="flex items-center space-x-4">
-                    <Avatar className="w-12 h-12">
+                    {/* <Avatar className="w-12 h-12">
                       <AvatarImage
                         src={postData.author.avatar || "/placeholder.svg"}
                         alt={postData.author.name}
@@ -191,26 +243,24 @@ export default function PostPage() {
                       <AvatarFallback>
                         {postData.author.name.charAt(0)}
                       </AvatarFallback>
-                    </Avatar>
+                    </Avatar> */}
                     <div>
-                      <p className="font-medium">{postData.author.name}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-medium">{post?.accountName}</p>
+                      {/* <p className="text-sm text-gray-500">
                         {postData.author.role}
-                      </p>
+                      </p> */}
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="text-sm text-gray-500 mb-4 flex items-center">
                     <Clock className="w-4 h-4 mr-1" />
-                    Đăng {postData.createdAt} • Cập nhật {postData.updatedAt}
+                    {post?.createdAt
+                      ? new Date(post.createdAt).toLocaleString("vi-VN")
+                      : ""}
                   </div>
                   <div className="prose max-w-none">
-                    {postData.content.split("\n\n").map((paragraph, index) => (
-                      <p key={index} className="mb-4">
-                        {paragraph}
-                      </p>
-                    ))}
+                    {post?.content.split("\n\n")}
                   </div>
                 </CardContent>
                 <CardFooter className="border-t pt-4">
@@ -220,36 +270,18 @@ export default function PostPage() {
                         variant="ghost"
                         size="sm"
                         className="flex items-center"
+                        onClick={handleLike}
                       >
-                        <ThumbsUp className="w-4 h-4 mr-2" />
-                        Thích ({postData.likes})
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center"
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Bình luận ({comments.length})
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center"
-                      >
-                        <Share2 className="w-4 h-4 mr-2" />
-                        Chia sẻ
+                        <ThumbsUp
+                          className={`w-4 h-4 mr-2 ${
+                            post?.liked ? "text-blue-500" : "text-gray-500"
+                          }`}
+                          fill={post?.liked ? "#3b82f6" : "none"} // Màu nền khi đã thích
+                        />
+                        {post?.liked ? "Đã thích" : "Thích"}
                       </Button>
                     </div>
                     <div className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center"
-                      >
-                        <Bookmark className="w-4 h-4 mr-2" />
-                        Lưu
-                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -276,9 +308,19 @@ export default function PostPage() {
                       placeholder="Viết bình luận của bạn..."
                       className="mb-4"
                       rows={4}
+                      value={commentContent}
+                      onChange={(e) => setCommentContent(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault(); // tránh xuống dòng
+                          handlePostComment();
+                        }
+                      }}
                     />
                     <div className="flex justify-end">
-                      <Button>Đăng bình luận</Button>
+                      <Button onClick={handlePostComment}>
+                        Đăng bình luận
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -289,7 +331,7 @@ export default function PostPage() {
                     <Card key={comment.id}>
                       <CardContent className="pt-6">
                         <div className="flex items-start space-x-4 mb-4">
-                          <Avatar>
+                          {/* <Avatar>
                             <AvatarImage
                               src={comment.author.avatar || "/placeholder.svg"}
                               alt={comment.author.name}
@@ -297,48 +339,26 @@ export default function PostPage() {
                             <AvatarFallback>
                               {comment.author.name.charAt(0)}
                             </AvatarFallback>
-                          </Avatar>
+                          </Avatar> */}
                           <div>
                             <div className="flex items-center">
-                              <p className="font-medium">
-                                {comment.author.name}
-                              </p>
+                              <p className="font-medium">{comment.accountId}</p>
                               <span className="mx-2 text-gray-300">•</span>
-                              <p className="text-sm text-gray-500">
-                                {comment.author.role}
+                              <p className="font-medium">
+                                {comment?.accountName}
                               </p>
                             </div>
                             <p className="text-xs text-gray-500">
-                              {comment.createdAt}
+                              {comment?.createdAt
+                                ? new Date(comment.createdAt).toLocaleString(
+                                    "vi-VN"
+                                  )
+                                : ""}
                             </p>
                           </div>
                         </div>
                         <div className="prose max-w-none ml-12">
-                          {comment.content
-                            .split("\n\n")
-                            .map((paragraph, index) => (
-                              <p key={index} className="mb-4">
-                                {paragraph}
-                              </p>
-                            ))}
-                        </div>
-                        <div className="flex items-center space-x-4 mt-4 ml-12">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex items-center text-sm"
-                          >
-                            <ThumbsUp className="w-3 h-3 mr-1" />
-                            Thích ({comment.likes})
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex items-center text-sm"
-                          >
-                            <MessageCircle className="w-3 h-3 mr-1" />
-                            Trả lời
-                          </Button>
+                          {comment.content.split("\n\n")}
                         </div>
                       </CardContent>
                     </Card>
@@ -358,69 +378,40 @@ export default function PostPage() {
                   <div className="flex items-center space-x-4 mb-4">
                     <Avatar className="w-16 h-16">
                       <AvatarImage
-                        src={postData.author.avatar || "/placeholder.svg"}
-                        alt={postData.author.name}
+                        src={
+                          post?.userInformationDto.avatarUrl ||
+                          "/placeholder.svg"
+                        }
                       />
                       <AvatarFallback>
-                        {postData.author.name.charAt(0)}
+                        {post?.userInformationDto.fullName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{postData.author.name}</p>
+                      <p className="font-medium">
+                        {post?.userInformationDto.fullName}
+                      </p>
                       <p className="text-sm text-gray-500">
-                        {postData.author.role}
+                        {post?.userInformationDto.dob}
                       </p>
                     </div>
                   </div>
                   <Separator className="my-4" />
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Tham gia:</span>
-                      <span>{postData.author.joinDate}</span>
+                      <span className="text-gray-600">Giới tính:</span>
+                      <span>
+                        {post?.userInformationDto.gender ? "Nam" : "Nữ"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Bài viết:</span>
-                      <span>{postData.author.posts}</span>
+                      <span className="text-gray-600">Số điện thoại:</span>
+                      <span>{post?.userInformationDto.phone}</span>
                     </div>
-                  </div>
-                  <div className="mt-4">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Xem tất cả bài viết
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Related Posts */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <h3 className="font-bold text-lg">Bài viết liên quan</h3>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {relatedPosts.map((post) => (
-                      <div
-                        key={post.id}
-                        className="border-b pb-4 last:border-0 last:pb-0"
-                      >
-                        <Link
-                          to={`/forum/post/${post.id}`}
-                          className="font-medium hover:text-blue-600 block mb-2"
-                        >
-                          {post.title}
-                        </Link>
-                        <div className="flex text-xs text-gray-500">
-                          <div className="flex items-center mr-4">
-                            <MessageCircle className="w-3 h-3 mr-1" />
-                            {post.comments} bình luận
-                          </div>
-                          <div className="flex items-center">
-                            <Eye className="w-3 h-3 mr-1" />
-                            {post.views} lượt xem
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Địa chỉ:</span>
+                      <span>{post?.userInformationDto.address}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
