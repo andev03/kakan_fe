@@ -73,7 +73,6 @@ export default function TabsSection() {
   const tabs = [
     { id: "tin-tuyen-sinh", label: "Tin tuyển sinh" },
     { id: "diem-chuan", label: "Điểm chuẩn" },
-    { id: "nganh-hoc", label: "Ngành học" },
   ];
 
   const [selectedYear, setSelectedYear] = useState("2024");

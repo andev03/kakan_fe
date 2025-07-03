@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Send,
@@ -24,11 +24,71 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import Header from "../../components/header";
+import { useEffect, useState } from "react";
+import { api } from "../../hooks/api";
+import { toast } from "react-toastify";
 
 export default function CreatePostPage() {
+  const [topics, setTopics] = useState([]);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [tags, setTags] = useState("");
+  const [accountId, setAccountId] = useState<number | null>(null);
+  const navigate = useNavigate();
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    setAccountId(user.id || null);
+  }, []);
+
+  const fetchTopics = async () => {
+    try {
+      const response = await api.get("/forum/api/topics");
+      if (response.data.status === 200) {
+        setTopics(response.data.data);
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách chủ đề:", error);
+    }
+  };
+  useEffect(() => {
+    fetchTopics();
+  }, []);
+
+  const handleSubmit = async () => {
+    const payload = {
+      accountId,
+      title,
+      content,
+      topicId: selectedTopics.map(Number), // Chuyển từ string[] sang number[]
+    };
+    console.log(payload);
+    try {
+      const response = await api.post("/forum/api/post", payload);
+      if (response.data.status === 200) {
+        toast.success("Tạo bài viết thành công");
+        // reset form hoặc chuyển trang
+        fetchTopics();
+        navigate("/forum");
+      }
+    } catch (error: any) {
+      console.error("Lỗi khi đăng bài:", error.response?.data || error.message);
+      toast.error("Đăng bài thất bại!");
+    }
+  };
+
+  const chunkArray = (array: any[], chunkSize: number) => {
+    const result = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      result.push(array.slice(i, i + chunkSize));
+    }
+    return result;
+  };
+  const chunkedTopics = chunkArray(topics, 4); // mỗi cột tối đa 4 topic
+
   return (
     <div className="min-h-screen bg-gray-50">
-     <Header/>
+      <Header />
 
       {/* Create Post Content */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -54,30 +114,44 @@ export default function CreatePostPage() {
                 </Label>
                 <Input
                   id="title"
-                  placeholder="Nhập tiêu đề bài viết (tối đa 100 ký tự)"
-                  className="mt-2"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
               </div>
 
               <div>
-                <Label htmlFor="category" className="text-base font-medium">
-                  Chọn chủ đề
-                </Label>
-                <Select>
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Chọn chủ đề cho bài viết" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white ">
-                    <SelectItem value="admission">Tuyển sinh</SelectItem>
-                    <SelectItem value="score">Điểm chuẩn</SelectItem>
-                    <SelectItem value="major">Ngành học</SelectItem>
-                    <SelectItem value="experience">
-                      Chia sẻ kinh nghiệm
-                    </SelectItem>
-                    <SelectItem value="scholarship">Học bổng</SelectItem>
-                    <SelectItem value="qa">Hỏi đáp</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-base font-medium">Chọn chủ đề</Label>
+                <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {chunkedTopics.map((group, colIndex) => (
+                    <div key={colIndex} className="space-y-2">
+                      {group.map((topic: any) => (
+                        <label
+                          key={topic.id}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="checkbox"
+                            value={topic.id}
+                            checked={selectedTopics.includes(
+                              topic.id.toString()
+                            )}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (e.target.checked) {
+                                setSelectedTopics((prev) => [...prev, value]);
+                              } else {
+                                setSelectedTopics((prev) =>
+                                  prev.filter((id) => id !== value)
+                                );
+                              }
+                            }}
+                          />
+                          <span>{topic.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -98,22 +172,10 @@ export default function CreatePostPage() {
                   </div>
                   <Textarea
                     id="content"
-                    placeholder="Nhập nội dung bài viết của bạn..."
-                    className="border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                    rows={12}
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
                   />
                 </div>
-              </div>
-
-              <div>
-                <Label htmlFor="tags" className="text-base font-medium">
-                  Thẻ
-                </Label>
-                <Input
-                  id="tags"
-                  placeholder="Nhập các thẻ, phân cách bằng dấu phẩy (ví dụ: tuyển sinh, đại học, 2025)"
-                  className="mt-2"
-                />
               </div>
             </div>
           </CardContent>
@@ -123,8 +185,10 @@ export default function CreatePostPage() {
               Vui lòng tuân thủ nội quy diễn đàn khi đăng bài
             </div>
             <div className="flex space-x-4">
-              <Button variant="outline">Lưu nháp</Button>
-              <Button className="bg-blue-500 hover:bg-blue-600">
+              <Button
+                onClick={handleSubmit}
+                className="bg-blue-500 hover:bg-blue-600"
+              >
                 <Send className="w-4 h-4 mr-2" />
                 Đăng bài
               </Button>

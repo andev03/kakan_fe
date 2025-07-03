@@ -39,8 +39,21 @@ export default function TinhDiemPage() {
 
     tinhoc: { 10: "", 11: "", 12: "" },
   });
+  interface BlockScore {
+    blockCode: string;
+    score: number;
+  }
 
-  const [result, setResult] = useState({ gpa: 0 });
+  interface GPAResult {
+    gpa: number;
+    blockScores: BlockScore[];
+  }
+
+  const [result, setResult] = useState<GPAResult>({
+    gpa: 0,
+    blockScores: [],
+  });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -82,13 +95,23 @@ export default function TinhDiemPage() {
         toast.error("Không tìm thấy người dùng. Vui lòng đăng nhập lại.");
         return;
       }
+      const emptyFields = Object.entries(scores).flatMap(([subject, years]) =>
+        Object.entries(years)
+          .filter(([year, value]) => value.trim() === "")
+          .map(([year]) => `${subject} - lớp ${year}`)
+      );
+
+      if (emptyFields.length > 0) {
+        toast.error("Vui lòng nhập đầy đủ điểm cho tất cả các môn và các năm");
+        return;
+      }
 
       const subjectScores = buildSubjectScores();
 
       setLoading(true);
       setError(null);
 
-      const response = await api.post(`/user/api/calculate/gpa`, {
+      const response = await api.post(`/user/api/calculate/score`, {
         subjectScores,
       });
       console.log("diem", response);
@@ -120,7 +143,7 @@ export default function TinhDiemPage() {
       congnghe: { 10: "", 11: "", 12: "" },
       tinhoc: { 10: "", 11: "", 12: "" },
     });
-    setResult({ gpa: 0 });
+    setResult({ gpa: 0, blockScores: [] });
     setError(null);
   };
 
@@ -291,7 +314,27 @@ export default function TinhDiemPage() {
                   <div className="text-4xl font-bold text-green-600 mb-2">
                     {result.gpa.toFixed(2)}
                   </div>
-                  <p className="text-gray-600">Điểm GPA của bạn</p>
+                  <p className="text-gray-600 mb-4">Điểm GPA của bạn</p>
+
+                  {/* Hiển thị blockScores */}
+                  <div className="text-left">
+                    <h4 className="text-md font-semibold text-gray-700 mb-2">
+                      Điểm theo tổ hợp:
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {result.blockScores.map((block) => (
+                        <div
+                          key={block.blockCode}
+                          className="border border-gray-200 rounded p-2 bg-gray-50 flex justify-between"
+                        >
+                          <span className="font-medium">{block.blockCode}</span>
+                          <span className="text-green-700">
+                            {block.score.toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

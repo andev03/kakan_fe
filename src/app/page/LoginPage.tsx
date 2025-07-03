@@ -378,6 +378,7 @@ export default function LoginPage() {
                       className="w-full h-12 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                     />
                   </div>
+                  
 
                   <button
                     onClick={handleRegister}

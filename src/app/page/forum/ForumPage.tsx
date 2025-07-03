@@ -143,6 +143,11 @@ const popularTopics = [
 export default function ForumPage() {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<PostDto[]>([]);
+  const [tab, setTab] = useState("all");
+  const [myPosts, setMyPosts] = useState<PostDto[]>([]);
+  const [allPosts, setAllPosts] = useState([]);
+
+  const accountId = JSON.parse(localStorage.getItem("user") || "{}").accountId;
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -180,6 +185,28 @@ export default function ForumPage() {
     fetchPosts();
   }, []);
 
+  useEffect(() => {
+    const fetchMyPosts = async () => {
+      const accountId = JSON.parse(localStorage.getItem("user") || "{}").id;
+
+      try {
+        if (tab === "my-posts" && accountId) {
+          const response = await api.get(`/forum/api/posts/${accountId}`);
+          console.log(response);
+          if (response.data.status === 200) {
+            setMyPosts(response.data.data);
+          } else {
+            console.warn("Có lỗi khi lấy bài viết:", response.data.message);
+          }
+        }
+      } catch (error: any) {
+        console.error("Lỗi khi gọi API lấy bài viết của tôi:", error);
+      }
+    };
+
+    fetchMyPosts();
+  }, [tab, accountId]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -216,11 +243,14 @@ export default function ForumPage() {
             </div>
 
             {/* Tabs */}
-            <Tabs defaultValue="all" className="mb-8 ">
+            <Tabs
+              defaultValue="all"
+              value={tab}
+              onValueChange={setTab}
+              className="mb-8 "
+            >
               <TabsList className="grid grid-cols-4 mb-6 bg-gray-100">
                 <TabsTrigger value="all">Tất cả</TabsTrigger>
-                <TabsTrigger value="hot">Nổi bật</TabsTrigger>
-                <TabsTrigger value="unanswered">Chưa trả lời</TabsTrigger>
                 <TabsTrigger value="my-posts">Bài viết của tôi</TabsTrigger>
               </TabsList>
               <TabsContent value="all">
@@ -228,7 +258,7 @@ export default function ForumPage() {
                 <div className="space-y-6">
                   {posts.map((post) => (
                     <Link key={post.id} to={`/forum-details/${post.id}`}>
-                      <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+                      <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer mb-5">
                         <CardHeader className="pb-2">
                           <div className="flex justify-between">
                             <div className="flex items-center space-x-4">
@@ -253,12 +283,7 @@ export default function ForumPage() {
                                 </div>
                               </div>
                             </div>
-                            <Badge
-                              variant="destructive"
-                              className="bg-orange-500"
-                            >
-                              HOT
-                            </Badge>
+
                           </div>
                         </CardHeader>
                         <CardContent>
@@ -299,9 +324,8 @@ export default function ForumPage() {
                                     }`}
                                     fill={post?.liked ? "#3b82f6" : "none"} // Màu nền khi đã thích
                                   />
-                                  {post?.liked ? "Đã thích" : "Thích"} 
-                                  
-                                   ({post.likeCount})
+                                  {post?.liked ? "Đã thích" : "Thích"}(
+                                  {post.likeCount})
                                 </Button>
                               </div>
                               <div className="flex items-center">
@@ -337,27 +361,91 @@ export default function ForumPage() {
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="hot">
-                <div className="p-8 text-center text-gray-500">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium mb-2">Bài viết nổi bật</h3>
-                  <p>Hiển thị các bài viết được quan tâm nhiều nhất</p>
-                </div>
-              </TabsContent>
-              <TabsContent value="unanswered">
-                <div className="p-8 text-center text-gray-500">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium mb-2">
-                    Bài viết chưa có câu trả lời
-                  </h3>
-                  <p>Hiển thị các bài viết chưa có ai trả lời</p>
-                </div>
-              </TabsContent>
+
               <TabsContent value="my-posts">
-                <div className="p-8 text-center text-gray-500">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium mb-2">Bài viết của bạn</h3>
-                  <p>Vui lòng đăng nhập để xem bài viết của bạn</p>
+                <div className="space-y-6">
+                  {myPosts.map((post) => (
+                    <Link key={post.id} to={`/forum-details/${post.id}`}>
+                      <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer mb-5">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between">
+                            <div className="flex items-center space-x-4">
+                              {/* <Avatar>
+                                <AvatarImage
+                                  src={post.author.avatar || "/placeholder.svg"}
+                                  alt={post.author.name}
+                                />
+                                <AvatarFallback>
+                                  {post.author.name.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar> */}
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {post.accountName}
+                                </p>
+                                <div className="flex items-center text-xs text-gray-500">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {new Date(post.createdAt).toLocaleString(
+                                    "vi-VN"
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <h3 className="text-xl font-bold mb-2 text-gray-900">
+                            {post.title}
+                          </h3>
+                          <p className="text-gray-600 line-clamp-2 mb-4">
+                            {post.content}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {/* topic  */}
+                            {/* {post.tags.map((tag, index) => (
+                              <Badge
+                                key={index}
+                                variant="secondary"
+                                className="bg-gray-100"
+                              >
+                                <Tag className="w-3 h-3 mr-1" />
+                                {tag}
+                              </Badge>
+                            ))} */}
+                          </div>
+                        </CardContent>
+                        <CardFooter className="border-t pt-4">
+                          <div className="flex justify-between w-full text-sm text-gray-500">
+                            <div className="flex space-x-6">
+                              <div className="flex space-x-4">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="flex items-center"
+                                >
+                                  <ThumbsUp
+                                    className={`w-4 h-4 mr-2 ${
+                                      post?.liked
+                                        ? "text-blue-500"
+                                        : "text-gray-500"
+                                    }`}
+                                    fill={post?.liked ? "#3b82f6" : "none"} // Màu nền khi đã thích
+                                  />
+                                  {post?.liked ? "Đã thích" : "Thích"}(
+                                  {post.likeCount})
+                                </Button>
+                              </div>
+                              <div className="flex items-center">
+                                <MessageCircle className="w-4 h-4 mr-1" />
+                                {post.commentCount}
+                              </div>
+                            </div>
+                          </div>
+                        </CardFooter>
+                      </Card>
+                    </Link>
+                  ))}
                 </div>
               </TabsContent>
             </Tabs>
@@ -377,7 +465,7 @@ export default function ForumPage() {
                 </p>
                 <button
                   onClick={() => navigate("/forum-post")}
-                  className="w-full flex items-center justify-center bg-black text-white p-2 "
+                  className="w-full flex items-center justify-center bg-black text-white p-2 cursor-pointer "
                 >
                   <PlusCircle className="w-4 h-4 mr-2" />
                   Tạo bài viết mới
