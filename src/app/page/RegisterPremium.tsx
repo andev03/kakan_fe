@@ -5,7 +5,6 @@ import { useState } from "react";
 import {
   ArrowLeft,
   CheckCircle,
-  CreditCard,
   Shield,
   Star,
   Clock,

@@ -1,9 +1,9 @@
 import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import universitiesData from "../data/all_schools_info.json";
 
 export default function HeroSection() {
-  const [query, setQuery] = useState("");
+  const [__query, setQuery] = useState("");
   const [universities] = useState(universitiesData || []);
   const [results, setResults] = useState<string[]>([]);
 

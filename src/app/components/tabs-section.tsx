@@ -18,8 +18,7 @@ import {
   Users,
 } from "lucide-react";
 
-import universitiesData from "../data/all_schools_info.json";
-import { href, Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "../hooks/api";
 // import Header from "../components/header";
 
@@ -68,8 +67,8 @@ export default function TabsSection() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("tin-tuyen-sinh");
   const [universities, setUniversities] = useState<University[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const [__loading, setLoading] = useState<boolean>(true);
+  const [__error, setError] = useState<string>("");
   const tabs = [
     { id: "tin-tuyen-sinh", label: "Tin tuyển sinh" },
     { id: "diem-chuan", label: "Điểm chuẩn" },

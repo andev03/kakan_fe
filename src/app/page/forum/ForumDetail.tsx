@@ -1,16 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  ThumbsUp,
-  MessageCircle,
-  Share2,
-  Bookmark,
-  Flag,
-  Clock,
-  Tag,
-  Eye,
-  Lock,
-} from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, ThumbsUp, Clock, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -18,7 +7,6 @@ import {
   CardFooter,
   CardHeader,
 } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
 import {
   Avatar,
   AvatarFallback,
@@ -34,25 +22,6 @@ import UnAuthenticatedPage from "../../components/unAuthenticatedPage";
 import { api } from "../../hooks/api";
 
 // Dữ liệu mẫu cho chi tiết bài đăng
-const postData = {
-  id: 1,
-  title: "Điểm chuẩn Đại học Y Dược năm 2025 dự kiến thế nào?",
-  content:
-    "Mình đang chuẩn bị thi đại học năm 2025 và muốn đăng ký vào ngành Y Đa khoa. Các anh chị có thông tin gì về điểm chuẩn dự kiến không ạ?\n\nMình đã tìm hiểu sơ qua và thấy điểm chuẩn những năm gần đây khá cao, dao động từ 26-28 điểm. Mình muốn biết với tình hình hiện tại thì điểm chuẩn năm 2025 có khả năng tăng hay giảm không?\n\nNgoài ra, mình cũng muốn hỏi thêm về các phương thức xét tuyển khác ngoài điểm thi THPT như xét học bạ, đánh giá năng lực, v.v. Trường Y có những phương thức nào và tỷ lệ trúng tuyển ra sao?\n\nCảm ơn mọi người đã đọc và chia sẻ!",
-  author: {
-    name: "Nguyễn Văn A",
-    avatar: "/placeholder.svg?height=40&width=40",
-    role: "Học sinh lớp 12",
-    joinDate: "Tháng 3, 2024",
-    posts: 15,
-  },
-  createdAt: "2 giờ trước",
-  updatedAt: "1 giờ trước",
-  tags: ["Điểm chuẩn", "Y Dược", "Tuyển sinh 2025"],
-  likes: 15,
-  views: 124,
-  isHot: true,
-};
 
 // Dữ liệu mẫu cho các bình luận
 
@@ -93,14 +62,14 @@ export default function PostPage() {
   const { postId } = useParams();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accountId, setAccountId] = useState<number | null>(null);
-  const navigate = useNavigate();
   const [comments, setComments] = useState<CommentDto[]>([]);
   const [commentContent, setCommentContent] = useState("");
-
   const [post, setPost] = useState<PostDto | null>(null);
-  const [hasLiked, setHasLiked] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [likedUsers, setLikedUsers] = useState<string[]>([]);
+  const [showLikedUsers, setShowLikedUsers] = useState(false);
+
+  const [__loading, setLoading] = useState(true);
+  const [__error, setError] = useState("");
   useEffect(() => {
     const userString = localStorage.getItem("user");
     if (userString) {
@@ -190,6 +159,16 @@ export default function PostPage() {
     }
   };
 
+  const fetchLikedUsers = async () => {
+    try {
+      const res = await api.get(`/forum/api/post/${postId}/like`);
+      setLikedUsers(res.data.data); // giả sử trả về mảng tên
+      setShowLikedUsers(true);
+    } catch (err) {
+      console.error("Lỗi khi tải danh sách người thích:", err);
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-gray-50">
       <Header />
@@ -269,7 +248,7 @@ export default function PostPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="flex items-center"
+                        className="flex items-center cursor-pointer"
                         onClick={handleLike}
                       >
                         <ThumbsUp
@@ -280,16 +259,42 @@ export default function PostPage() {
                         />
                         {post?.liked ? "Đã thích" : "Thích"}
                       </Button>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center"
-                      >
-                        <Flag className="w-4 h-4 mr-2" />
-                        Báo cáo
-                      </Button>
+                      <div className="relative inline-block">
+                        <p
+                          onClick={fetchLikedUsers}
+                          className="text-sm text-gray-500 hover:underline cursor-pointer mt-2"
+                        >
+                          {post?.likeCount} người đã thích
+                        </p>
+
+                        {showLikedUsers && (
+                          <div className="absolute left-0 mt-2 bg-white border border-gray-300 rounded shadow-lg z-10 w-60">
+                            <div className="p-4">
+                              <div className="flex justify-between mb-3">
+                                <h3 className="font-semibold text-lg">
+                                  Người đã thích
+                                </h3>
+                                <button
+                                  onClick={() => setShowLikedUsers(false)}
+                                  className=" text-gray-500 hover:underline "
+                                >
+                                  <X className="text-sm" />
+                                </button>
+                              </div>
+                              <ul className="space-y-1 max-h-60 overflow-y-auto">
+                                {likedUsers.map((name, index) => (
+                                  <li
+                                    key={index}
+                                    className="text-gray-700 text-sm"
+                                  >
+                                    {name}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardFooter>
@@ -317,8 +322,11 @@ export default function PostPage() {
                         }
                       }}
                     />
-                    <div className="flex justify-end">
-                      <Button onClick={handlePostComment}>
+                    <div className="flex justify-end ">
+                      <Button
+                        onClick={handlePostComment}
+                        className="cursor-pointer border-1"
+                      >
                         Đăng bình luận
                       </Button>
                     </div>

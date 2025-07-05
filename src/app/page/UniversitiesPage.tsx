@@ -1,8 +1,7 @@
-import { Search, Building2, MapPin, Users, Calendar } from "lucide-react";
+import { Search, Building2, MapPin} from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
 import Header from "../components/header";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -51,8 +50,8 @@ interface University {
 }
 export default function UniversitiesPage() {
   const [universities, setUniversities] = useState<University[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const [__loading, setLoading] = useState<boolean>(true);
+  const [__error, setError] = useState<string>("");
   useEffect(() => {
     const fetchUniversities = async () => {
       try {

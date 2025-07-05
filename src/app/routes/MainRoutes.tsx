@@ -1,4 +1,3 @@
-import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import HomePage from "../page/HomePage";
 import LoginPage from "../page/LoginPage";
@@ -12,6 +11,8 @@ import ForumPost from "../page/forum/ForumPost";
 import UniversityDetail from "../page/UniversityDetails";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ProfilePage from "../page/ProfilePage";
+import ManagePost from "../page/staff/ManagePost";
 
 const MainRoutes = () => {
   return (
@@ -27,12 +28,13 @@ const MainRoutes = () => {
           <Route path="/universities" element={<UniversitiesPage />} />
           <Route path="/forum" element={<ForumPage />} />
           <Route path="/forum-post" element={<ForumPost />} />
-
+          <Route path="/customer/dashboard" element={<ProfilePage />} />
           <Route
             path="/university-details/:name"
             element={<UniversityDetail />}
           />
           <Route path="/forum-details/:postId" element={<ForumDetail />} />
+          <Route path="/manage-post" element={<ManagePost />} />
         </Routes>
       </BrowserRouter>
     </>

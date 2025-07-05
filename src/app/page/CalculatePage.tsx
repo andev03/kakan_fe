@@ -3,7 +3,6 @@
 import { Calculator, Award, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import axios from "axios";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import UnAuthenticatedPage from "../components/unAuthenticatedPage";
@@ -90,14 +89,13 @@ export default function TinhDiemPage() {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       const accountId = user.id;
-
       if (!accountId) {
         toast.error("Không tìm thấy người dùng. Vui lòng đăng nhập lại.");
         return;
       }
       const emptyFields = Object.entries(scores).flatMap(([subject, years]) =>
         Object.entries(years)
-          .filter(([year, value]) => value.trim() === "")
+          .filter(([value]) => value.trim() === "")
           .map(([year]) => `${subject} - lớp ${year}`)
       );
 
@@ -110,7 +108,7 @@ export default function TinhDiemPage() {
 
       setLoading(true);
       setError(null);
-
+      console.log(subjectScores);
       const response = await api.post(`/user/api/calculate/score`, {
         subjectScores,
       });

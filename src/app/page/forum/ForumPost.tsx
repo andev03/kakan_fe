@@ -16,13 +16,7 @@ import {
 import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
 import { Label } from "../../components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
+
 import Header from "../../components/header";
 import { useEffect, useState } from "react";
 import { api } from "../../hooks/api";
@@ -33,7 +27,6 @@ export default function CreatePostPage() {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [tags, setTags] = useState("");
   const [accountId, setAccountId] = useState<number | null>(null);
   const navigate = useNavigate();
   useEffect(() => {

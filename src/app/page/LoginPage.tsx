@@ -12,8 +12,8 @@ import { toast } from "react-toastify";
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [__error, setError] = useState("");
+  const [__isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const { login } = useUser();
@@ -67,12 +67,16 @@ export default function LoginPage() {
       if (data) {
         login(data);
         const role = data.role;
-        switch (role[0]) {
+        console.log("ROLE", role);
+        switch (role) {
           case "ADMIN":
             navigate("/admin");
             break;
           case "STUDENT":
             navigate("/");
+            break;
+          case "STAFF":
+            navigate("/manage-post");
             break;
           default:
             navigate("/");
@@ -378,7 +382,6 @@ export default function LoginPage() {
                       className="w-full h-12 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                     />
                   </div>
-                  
 
                   <button
                     onClick={handleRegister}

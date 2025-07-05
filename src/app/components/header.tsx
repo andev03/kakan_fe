@@ -1,8 +1,7 @@
 import { useState } from "react";
 import LogoName from "./logoName";
 import { useNavigate, Link } from "react-router-dom";
-import { Button } from "../components/ui/button";
-import { Users, Menu, X, ChevronDown, Gavel, User } from "lucide-react";
+import { ChevronDown, User } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { useUser } from "../hooks/userContext";
 export default function Header() {

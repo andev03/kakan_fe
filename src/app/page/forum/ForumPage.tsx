@@ -1,13 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
-  MessageSquare,
   Clock,
   Tag,
   PlusCircle,
   ThumbsUp,
   MessageCircle,
-  Eye,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -18,11 +16,7 @@ import {
   CardHeader,
 } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "../../components/ui/avatar";
+
 import {
   Tabs,
   TabsContent,
@@ -33,89 +27,6 @@ import Header from "../../components/header";
 import { useEffect, useState } from "react";
 import { api } from "../../hooks/api";
 
-// Dữ liệu mẫu cho các bài đăng diễn đàn
-const forumPosts = [
-  {
-    id: 1,
-    title: "Điểm chuẩn Đại học Y Dược năm 2025 dự kiến thế nào?",
-    content:
-      "Mình đang chuẩn bị thi đại học năm 2025 và muốn đăng ký vào ngành Y Đa khoa. Các anh chị có thông tin gì về điểm chuẩn dự kiến không ạ?",
-    author: {
-      name: "Nguyễn Văn A",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    createdAt: "2 giờ trước",
-    tags: ["Điểm chuẩn", "Y Dược", "Tuyển sinh 2025"],
-    likes: 15,
-    comments: 8,
-    views: 124,
-    isHot: true,
-  },
-  {
-    id: 2,
-    title: "Hồ sơ xét tuyển Đại học Bách Khoa cần những gì?",
-    content:
-      "Mình muốn xét tuyển vào Đại học Bách Khoa nhưng chưa rõ cần chuẩn bị những giấy tờ gì. Mong mọi người chia sẻ kinh nghiệm ạ.",
-    author: {
-      name: "Trần Thị B",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    createdAt: "5 giờ trước",
-    tags: ["Hồ sơ xét tuyển", "Bách Khoa", "Kinh nghiệm"],
-    likes: 10,
-    comments: 12,
-    views: 98,
-    isHot: false,
-  },
-  {
-    id: 3,
-    title: "So sánh ngành Công nghệ thông tin giữa các trường top đầu",
-    content:
-      "Mình đang phân vân giữa ngành CNTT của ĐH Bách Khoa, ĐH CNTT và ĐH FPT. Mọi người có thể cho mình xin ý kiến về chất lượng đào tạo, cơ hội việc làm không ạ?",
-    author: {
-      name: "Lê Văn C",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    createdAt: "1 ngày trước",
-    tags: ["CNTT", "So sánh", "Ngành học"],
-    likes: 32,
-    comments: 24,
-    views: 256,
-    isHot: true,
-  },
-  {
-    id: 4,
-    title: "Kinh nghiệm ôn thi khối A1 đạt điểm cao",
-    content:
-      "Mình vừa thi đại học khối A1 năm nay và đạt 27.5 điểm. Mình muốn chia sẻ một số kinh nghiệm ôn thi cho các bạn khóa sau.",
-    author: {
-      name: "Phạm Thị D",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    createdAt: "2 ngày trước",
-    tags: ["Kinh nghiệm", "Ôn thi", "Khối A1"],
-    likes: 45,
-    comments: 18,
-    views: 320,
-    isHot: true,
-  },
-  {
-    id: 5,
-    title: "Học bổng dành cho tân sinh viên năm 2025",
-    content:
-      "Mình muốn tìm hiểu về các chương trình học bổng dành cho tân sinh viên năm 2025. Các trường nào có chính sách học bổng tốt nhất?",
-    author: {
-      name: "Hoàng Văn E",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    createdAt: "3 ngày trước",
-    tags: ["Học bổng", "Tân sinh viên", "2025"],
-    likes: 28,
-    comments: 15,
-    views: 210,
-    isHot: false,
-  },
-];
 
 interface PostDto {
   id: string;
@@ -145,12 +56,11 @@ export default function ForumPage() {
   const [posts, setPosts] = useState<PostDto[]>([]);
   const [tab, setTab] = useState("all");
   const [myPosts, setMyPosts] = useState<PostDto[]>([]);
-  const [allPosts, setAllPosts] = useState([]);
 
   const accountId = JSON.parse(localStorage.getItem("user") || "{}").accountId;
 
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [__loading, setLoading] = useState<boolean>(true);
+  const [__error, setError] = useState<string | null>(null);
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -192,7 +102,7 @@ export default function ForumPage() {
       try {
         if (tab === "my-posts" && accountId) {
           const response = await api.get(`/forum/api/posts/${accountId}`);
-          console.log(response);
+          console.log("my-post", response);
           if (response.data.status === 200) {
             setMyPosts(response.data.data);
           } else {
@@ -283,7 +193,6 @@ export default function ForumPage() {
                                 </div>
                               </div>
                             </div>
-
                           </div>
                         </CardHeader>
                         <CardContent>
@@ -391,7 +300,6 @@ export default function ForumPage() {
                                 </div>
                               </div>
                             </div>
-
                           </div>
                         </CardHeader>
                         <CardContent>

@@ -11,14 +11,12 @@ import {
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import {
-  Search,
   MapPin,
   Phone,
   Mail,
   Globe,
   GraduationCap,
 } from "lucide-react";
-import universitiesData from "../data/all_schools_info.json";
 import Header from "../components/header";
 import { useParams } from "react-router-dom";
 import { api } from "../hooks/api";
@@ -68,8 +66,8 @@ export default function UniversityDetail() {
   const { name } = useParams(); // URL dạng /university/:id, ở đây `id` chính là `name`
   const [selectedUniversity, setSelectedUniversity] =
     useState<University | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const [__loading, setLoading] = useState<boolean>(true);
+  const [__error, setError] = useState<string>("");
 
   useEffect(() => {
     const fetchUniversity = async () => {
