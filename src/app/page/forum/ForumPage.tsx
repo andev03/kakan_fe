@@ -27,7 +27,6 @@ import Header from "../../components/header";
 import { useEffect, useState } from "react";
 import { api } from "../../hooks/api";
 
-
 interface PostDto {
   id: string;
   title: string;
@@ -166,13 +165,15 @@ export default function ForumPage() {
               <TabsContent value="all">
                 {/* Posts List */}
                 <div className="space-y-6">
-                  {posts.map((post) => (
-                    <Link key={post.id} to={`/forum-details/${post.id}`}>
-                      <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer mb-5">
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between">
-                            <div className="flex items-center space-x-4">
-                              {/* <Avatar>
+                  {posts
+                    .filter((post) => post.status === "ACTIVE")
+                    .map((post) => (
+                      <Link key={post.id} to={`/forum-details/${post.id}`}>
+                        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer mb-5">
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between">
+                              <div className="flex items-center space-x-4">
+                                {/* <Avatar>
                                 <AvatarImage
                                   src={post.author.avatar || "/placeholder.svg"}
                                   alt={post.author.name}
@@ -181,30 +182,30 @@ export default function ForumPage() {
                                   {post.author.name.charAt(0)}
                                 </AvatarFallback>
                               </Avatar> */}
-                              <div>
-                                <p className="text-sm font-medium">
-                                  {post.accountName}
-                                </p>
-                                <div className="flex items-center text-xs text-gray-500">
-                                  <Clock className="w-3 h-3 mr-1" />
-                                  {new Date(post.createdAt).toLocaleString(
-                                    "vi-VN"
-                                  )}
+                                <div>
+                                  <p className="text-sm font-medium">
+                                    {post.accountName}
+                                  </p>
+                                  <div className="flex items-center text-xs text-gray-500">
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    {new Date(post.createdAt).toLocaleString(
+                                      "vi-VN"
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <h3 className="text-xl font-bold mb-2 text-gray-900">
-                            {post.title}
-                          </h3>
-                          <p className="text-gray-600 line-clamp-2 mb-4">
-                            {post.content}
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {/* topic  */}
-                            {/* {post.tags.map((tag, index) => (
+                          </CardHeader>
+                          <CardContent>
+                            <h3 className="text-xl font-bold mb-2 text-gray-900">
+                              {post.title}
+                            </h3>
+                            <p className="text-gray-600 line-clamp-2 mb-4">
+                              {post.content}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {/* topic  */}
+                              {/* {post.tags.map((tag, index) => (
                               <Badge
                                 key={index}
                                 variant="secondary"
@@ -214,39 +215,39 @@ export default function ForumPage() {
                                 {tag}
                               </Badge>
                             ))} */}
-                          </div>
-                        </CardContent>
-                        <CardFooter className="border-t pt-4">
-                          <div className="flex justify-between w-full text-sm text-gray-500">
-                            <div className="flex space-x-6">
-                              <div className="flex space-x-4">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="flex items-center"
-                                >
-                                  <ThumbsUp
-                                    className={`w-4 h-4 mr-2 ${
-                                      post?.liked
-                                        ? "text-blue-500"
-                                        : "text-gray-500"
-                                    }`}
-                                    fill={post?.liked ? "#3b82f6" : "none"} // Màu nền khi đã thích
-                                  />
-                                  {post?.liked ? "Đã thích" : "Thích"}(
-                                  {post.likeCount})
-                                </Button>
-                              </div>
-                              <div className="flex items-center">
-                                <MessageCircle className="w-4 h-4 mr-1" />
-                                {post.commentCount}
+                            </div>
+                          </CardContent>
+                          <CardFooter className="border-t pt-4">
+                            <div className="flex justify-between w-full text-sm text-gray-500">
+                              <div className="flex space-x-6">
+                                <div className="flex space-x-4">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="flex items-center"
+                                  >
+                                    <ThumbsUp
+                                      className={`w-4 h-4 mr-2 ${
+                                        post?.liked
+                                          ? "text-blue-500"
+                                          : "text-gray-500"
+                                      }`}
+                                      fill={post?.liked ? "#3b82f6" : "none"} // Màu nền khi đã thích
+                                    />
+                                    {post?.liked ? "Đã thích" : "Thích"}(
+                                    {post.likeCount})
+                                  </Button>
+                                </div>
+                                <div className="flex items-center">
+                                  <MessageCircle className="w-4 h-4 mr-1" />
+                                  {post.commentCount}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </CardFooter>
-                      </Card>
-                    </Link>
-                  ))}
+                          </CardFooter>
+                        </Card>
+                      </Link>
+                    ))}
                 </div>
 
                 {/* Pagination */}
@@ -273,13 +274,15 @@ export default function ForumPage() {
 
               <TabsContent value="my-posts">
                 <div className="space-y-6">
-                  {myPosts.map((post) => (
-                    <Link key={post.id} to={`/forum-details/${post.id}`}>
-                      <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer mb-5">
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between">
-                            <div className="flex items-center space-x-4">
-                              {/* <Avatar>
+                  {myPosts
+                    .filter((post) => post.status !== "DELETED")
+                    .map((post) => (
+                      <Link key={post.id} to={`/forum-details/${post.id}`}>
+                        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer mb-5">
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between">
+                              <div className="flex items-center space-x-4">
+                                {/* <Avatar>
                                 <AvatarImage
                                   src={post.author.avatar || "/placeholder.svg"}
                                   alt={post.author.name}
@@ -288,30 +291,30 @@ export default function ForumPage() {
                                   {post.author.name.charAt(0)}
                                 </AvatarFallback>
                               </Avatar> */}
-                              <div>
-                                <p className="text-sm font-medium">
-                                  {post.accountName}
-                                </p>
-                                <div className="flex items-center text-xs text-gray-500">
-                                  <Clock className="w-3 h-3 mr-1" />
-                                  {new Date(post.createdAt).toLocaleString(
-                                    "vi-VN"
-                                  )}
+                                <div>
+                                  <p className="text-sm font-medium">
+                                    {post.accountName}
+                                  </p>
+                                  <div className="flex items-center text-xs text-gray-500">
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    {new Date(post.createdAt).toLocaleString(
+                                      "vi-VN"
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <h3 className="text-xl font-bold mb-2 text-gray-900">
-                            {post.title}
-                          </h3>
-                          <p className="text-gray-600 line-clamp-2 mb-4">
-                            {post.content}
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {/* topic  */}
-                            {/* {post.tags.map((tag, index) => (
+                          </CardHeader>
+                          <CardContent>
+                            <h3 className="text-xl font-bold mb-2 text-gray-900">
+                              {post.title}
+                            </h3>
+                            <p className="text-gray-600 line-clamp-2 mb-4">
+                              {post.content}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {/* topic  */}
+                              {/* {post.tags.map((tag, index) => (
                               <Badge
                                 key={index}
                                 variant="secondary"
@@ -321,39 +324,39 @@ export default function ForumPage() {
                                 {tag}
                               </Badge>
                             ))} */}
-                          </div>
-                        </CardContent>
-                        <CardFooter className="border-t pt-4">
-                          <div className="flex justify-between w-full text-sm text-gray-500">
-                            <div className="flex space-x-6">
-                              <div className="flex space-x-4">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="flex items-center"
-                                >
-                                  <ThumbsUp
-                                    className={`w-4 h-4 mr-2 ${
-                                      post?.liked
-                                        ? "text-blue-500"
-                                        : "text-gray-500"
-                                    }`}
-                                    fill={post?.liked ? "#3b82f6" : "none"} // Màu nền khi đã thích
-                                  />
-                                  {post?.liked ? "Đã thích" : "Thích"}(
-                                  {post.likeCount})
-                                </Button>
-                              </div>
-                              <div className="flex items-center">
-                                <MessageCircle className="w-4 h-4 mr-1" />
-                                {post.commentCount}
+                            </div>
+                          </CardContent>
+                          <CardFooter className="border-t pt-4">
+                            <div className="flex justify-between w-full text-sm text-gray-500">
+                              <div className="flex space-x-6">
+                                <div className="flex space-x-4">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="flex items-center"
+                                  >
+                                    <ThumbsUp
+                                      className={`w-4 h-4 mr-2 ${
+                                        post?.liked
+                                          ? "text-blue-500"
+                                          : "text-gray-500"
+                                      }`}
+                                      fill={post?.liked ? "#3b82f6" : "none"} // Màu nền khi đã thích
+                                    />
+                                    {post?.liked ? "Đã thích" : "Thích"}(
+                                    {post.likeCount})
+                                  </Button>
+                                </div>
+                                <div className="flex items-center">
+                                  <MessageCircle className="w-4 h-4 mr-1" />
+                                  {post.commentCount}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </CardFooter>
-                      </Card>
-                    </Link>
-                  ))}
+                          </CardFooter>
+                        </Card>
+                      </Link>
+                    ))}
                 </div>
               </TabsContent>
             </Tabs>
