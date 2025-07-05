@@ -22,8 +22,8 @@ jobs:
       - name: Build and push FE image
         uses: docker/build-push-action@v5
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: ./kakan-fe/Dockerfile
+          file: ./kakan-fe/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/fe-react:${{ env.TAG }}
 
