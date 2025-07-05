@@ -1,0 +1,75 @@
+name: Deploy Microservices with Docker Compose
+
+on:
+  push:
+    branches: ["release"]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Generate UUID as version tag
+        id: uuid
+        run: echo "TAG=ver-${{ github.run_number }}" >> $GITHUB_ENV
+
+      - name: Build and push FE image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/fe-react:${{ env.TAG }}
+
+      - name: Stop, Clean, Pull, and Run Frontend Container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: kakan
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            echo "🛑 Stopping old container"
+            docker stop project-frontend || true
+            docker rm project-frontend || true
+
+            echo "🧹 Removing old frontend images (excluding current)"
+            docker images "${{ secrets.DOCKER_USERNAME }}/fe-react" --format "{{.Repository}}:{{.Tag}}" | grep -v "${{ env.TAG }}" | xargs -r docker rmi || true
+
+            echo "📥 Pulling new image"
+            docker pull ${{ secrets.DOCKER_USERNAME }}/fe-react:${{ env.TAG }}
+
+            echo "🚀 Running container"
+            docker run -d \
+              --rm \
+              --name project-frontend \
+              --e VITE_BACKEND_URL=${{ secrets.VITE_BACKEND }} \
+              -p 5173:5173 \
+              ${{ secrets.DOCKER_USERNAME }}/fe-react:${{ env.TAG }}
+
+      - name: Notify Slack on Success
+        if: success()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": ":rocket: *Deployment front-end tag:*\n${{ env.TAG }} ✅ Successful!"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack on Failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": ":x: *Deployment front-end tag:*\n${{ env.TAG }} ❌ Failed!"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
