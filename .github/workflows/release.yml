@@ -48,7 +48,7 @@ jobs:
             docker run -d \
               --rm \
               --name project-frontend \
-              -e VITE_BACKEND_URL=${{ secrets.VITE_BACKEND }} \
+              -e VITE_BACKEND=${{ secrets.VITE_BACKEND }} \
               -p 5173:5173 \
               ${{ secrets.DOCKER_USERNAME }}/fe-react:${{ env.TAG }}
 
