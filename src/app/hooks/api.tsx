@@ -5,7 +5,7 @@ import type {
   AxiosError,
 } from "axios";
 
-const baseURL = import.meta.env.VITE_BACKEND || "http://localhost:8800"; // Tất cả gọi qua API Gateway
+const baseURL = import.meta.env.BACKEND_URL || "http://localhost:8800"; // Tất cả gọi qua API Gateway
 
 export const api = axios.create({
   baseURL,
