@@ -27,7 +27,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/fe-react:${{ env.TAG }}
           build-args: |
-            VITE_BACKEND=${{ secrets.VITE_BACKEND }}
+            BACKEND_URL=${{ secrets.BACKEND_URL }}
 
       - name: Stop, Clean, Pull, and Run Frontend Container
         uses: appleboy/ssh-action@v1.0.3
