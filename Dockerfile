@@ -7,9 +7,12 @@ COPY package.json package-lock.json ./
 
 RUN npm install --frozen-lockfile
 
+ARG VITE_BACKEND_URL
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+
 COPY . .
 
-RUN npm run build
+RUN echo "VITE_BACKEND_URL=$VITE_BACKEND_URL" > .env && npm run build
 
 # Stage 2: Chạy Nginx để serve static files
 FROM nginx:alpine
