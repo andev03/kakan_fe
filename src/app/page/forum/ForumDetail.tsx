@@ -199,6 +199,10 @@ export default function PostPage() {
                   <div className="flex justify-between items-start">
                     <div>
                       <h1 className="text-2xl font-bold mb-2">{post?.title}</h1>
+                      <p className="text-sm font-semibold text-red-500 mb-2 uppercase">
+                        {post?.status === "BLOCKED" && "Bài viết đã bị chặn"}
+                        {post?.status === "DELETED" && "Bài viết đã bị xoá"}
+                      </p>
                       {/* <div className="flex flex-wrap gap-2 mb-4">
                         {postData.tags.map((tag, index) => (
                           <Badge
@@ -250,6 +254,10 @@ export default function PostPage() {
                         size="sm"
                         className="flex items-center cursor-pointer"
                         onClick={handleLike}
+                        disabled={
+                          post?.status === "BLOCKED" ||
+                          post?.status === "DELETED"
+                        }
                       >
                         <ThumbsUp
                           className={`w-4 h-4 mr-2 ${
@@ -315,6 +323,9 @@ export default function PostPage() {
                       rows={4}
                       value={commentContent}
                       onChange={(e) => setCommentContent(e.target.value)}
+                      disabled={
+                        post?.status === "BLOCKED" || post?.status === "DELETED"
+                      }
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault(); // tránh xuống dòng

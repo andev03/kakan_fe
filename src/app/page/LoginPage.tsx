@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Eye, EyeOff, ArrowRight, CheckCircle } from "lucide-react";
 import LogoName from "../components/logoName";
@@ -15,6 +15,11 @@ export default function LoginPage() {
   const [__error, setError] = useState("");
   const [__isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  useEffect(() => {
+    // Xoá token và thông tin user trong localStorage khi vào trang Login
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+  }, []);
 
   const { login } = useUser();
 

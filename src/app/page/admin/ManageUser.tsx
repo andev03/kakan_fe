@@ -41,64 +41,24 @@ import {
 } from "../../components/ui/hover-card";
 import { ChevronDown } from "lucide-react";
 
-import { MoreHorizontal, Search, UserPlus } from "lucide-react";
+import { MoreHorizontal, Search } from "lucide-react";
 import { useUser } from "../../hooks/userContext";
 import { useNavigate } from "react-router-dom";
 import LogoName from "../../components/logoName";
 import { api } from "../../hooks/api";
 import { toast } from "react-toastify";
 // Mock data for user
-const mockuser = [
-  {
-    userId: "USR001",
-    name: "Nguyễn Văn An",
-    email: "nguyenvanan@email.com",
-    gender: "Nam",
-    dob: "15/03/1990",
-    phone: "0901234567",
-    address: "123 Đường ABC, Quận 1, TP.HCM",
-    avatarUrl: "/placeholder.svg?height=40&width=40",
-    status: "active",
-    joinDate: "16:03:19 11/7/2025",
-    lastActive: "2 giờ trước",
-  },
-  {
-    userId: "USR002",
-    name: "Trần Thị Bình",
-    email: "tranthibinh@email.com",
-    gender: "Nữ",
-    dob: "22/08/1995",
-    phone: "0912345678",
-    address: "456 Đường XYZ, Quận 3, TP.HCM",
-    avatarUrl: "/placeholder.svg?height=40&width=40",
-    status: "active",
-    joinDate: "16:03:19 11/7/2025",
-    lastActive: "1 ngày trước",
-  },
-  {
-    userId: "USR003",
-    name: "Lê Hoàng Cường",
-    email: "lehoangcuong@email.com",
-    gender: "Nam",
-    dob: "10/12/1988",
-    phone: "0923456789",
-    address: "789 Đường DEF, Quận 7, TP.HCM",
-    avatarUrl: "/placeholder.svg?height=40&width=40",
-    status: "blocked",
-    joinDate: "16:03:19 11/7/2025",
-    lastActive: "1 tuần trước",
-  },
-];
+import ConfirmDeleteDialog from "../../components/confirmDelete";
 interface UserDto {
   userId: number;
   fullName: string;
   gender: boolean;
   email: string;
-  createAt: string;
+  createDate: string;
   dob: string;
   phone: string;
   address: string;
-  status: boolean;
+  active: boolean;
   avatarUrl: string;
 }
 
@@ -106,6 +66,10 @@ export default function ManageUser() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [users, setUsers] = useState<UserDto[]>([]);
+  const [openDeleteDialogUser, setOpenDeleteDialogUser] = useState<{
+    userId: number;
+    status: boolean;
+  } | null>(null);
   const { logout } = useUser();
   const navigate = useNavigate();
   const handleLogout = () => {
@@ -142,13 +106,6 @@ export default function ManageUser() {
     userId: number,
     currentStatus: boolean
   ) => {
-    const confirmMessage = currentStatus
-      ? "Bạn có chắc chắn muốn chặn người dùng này không?"
-      : "Bạn có chắc chắn muốn kích hoạt người dùng này không?";
-
-    const confirmed = window.confirm(confirmMessage);
-    if (!confirmed) return;
-
     try {
       const url = currentStatus
         ? `/user/api/admin/block-user/${userId}`
@@ -175,15 +132,31 @@ export default function ManageUser() {
       (user.email || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "active" && user.status === true) ||
-      (statusFilter === "blocked" && user.status === false);
+      (statusFilter === "active" && user.active === true) ||
+      (statusFilter === "blocked" && user.active === false);
 
     return matchesSearch && matchesStatus;
   });
 
   const totaluser = users.length;
-  const activeUsers = users.filter((user) => user.status === true).length;
-  const blockedUsers = users.filter((user) => user.status === false).length;
+  const activeUsers = users.filter((user) => user.active === true).length;
+  const blockedUsers = users.filter((user) => user.active === false).length;
+
+  function formatDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    date.setHours(date.getHours() + 7); // Chuyển sang giờ Việt Nam (UTC+7)
+
+    return date
+      .toLocaleString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour12: false,
+      })
+      .replace(" ", ", ");
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -256,16 +229,7 @@ export default function ManageUser() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Tổng tương tác
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">156</div>
-            </CardContent>
-          </Card>
+
         </div>
 
         {/* User Management Section */}
@@ -299,7 +263,6 @@ export default function ManageUser() {
                   </SelectContent>
                 </Select>
               </div>
-
             </div>
 
             {/* user Table */}
@@ -354,17 +317,19 @@ export default function ManageUser() {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant={user.status ? "default" : "destructive"}
+                          variant={user.active ? "default" : "destructive"}
                           className={
-                            user.status
+                            user.active
                               ? "bg-green-100 text-green-800 hover:bg-green-100"
                               : "bg-red-100 text-red-800 hover:bg-red-100"
                           }
                         >
-                          {user.status ? "Hoạt động" : "Bị chặn"}
+                          {user.active ? "Hoạt động" : "Bị chặn"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm">{user.createAt}</TableCell>
+                      <TableCell className="text-sm">
+                        {formatDate(user.createDate)}
+                      </TableCell>
 
                       <TableCell>
                         <DropdownMenu>
@@ -376,13 +341,16 @@ export default function ManageUser() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               onClick={() =>
-                                handleToggleUserStatus(user.userId, user.status)
+                                setOpenDeleteDialogUser({
+                                  userId: user.userId,
+                                  status: user.active,
+                                })
                               }
                               className={
-                                user.status ? "text-red-600" : "text-green-600"
+                                user.active ? "text-red-600" : "text-green-600"
                               }
                             >
-                              {user.status
+                              {user.active
                                 ? "Chặn người dùng"
                                 : "Kích hoạt người dùng"}
                             </DropdownMenuItem>
@@ -396,6 +364,31 @@ export default function ManageUser() {
             </div>
           </CardContent>
         </Card>
+        {openDeleteDialogUser && (
+          <ConfirmDeleteDialog
+            title={
+              openDeleteDialogUser.status
+                ? `Xác nhận chặn người dùng "${openDeleteDialogUser.userId}"`
+                : `Xác nhận kích hoạt người dùng "${openDeleteDialogUser.userId}"`
+            }
+            description={
+              openDeleteDialogUser.status
+                ? "Người dùng này sẽ bị chặn và không thể truy cập hệ thống."
+                : "Người dùng sẽ được kích hoạt và có thể truy cập lại hệ thống."
+            }
+            onConfirm={() => {
+              handleToggleUserStatus(
+                openDeleteDialogUser.userId,
+                openDeleteDialogUser.status
+              );
+            }}
+            open={!!openDeleteDialogUser}
+            onOpenChange={(open) => {
+              if (!open) setOpenDeleteDialogUser(null);
+            }}
+            confirmLabel={openDeleteDialogUser.status ? "Chặn" : "Kích hoạt"}
+          />
+        )}
       </div>
     </div>
   );

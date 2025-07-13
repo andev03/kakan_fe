@@ -2,10 +2,11 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
   Clock,
-  Tag,
   PlusCircle,
   ThumbsUp,
   MessageCircle,
+  CheckCircle,
+  Star,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -15,7 +16,6 @@ import {
   CardFooter,
   CardHeader,
 } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
 
 import {
   Tabs,
@@ -41,36 +41,29 @@ interface PostDto {
 }
 
 // Dữ liệu mẫu cho các chủ đề phổ biến
-const popularTopics = [
-  { name: "Điểm chuẩn", count: 156 },
-  { name: "Tuyển sinh", count: 124 },
-  { name: "Học bổng", count: 98 },
-  { name: "Ngành học", count: 87 },
-  { name: "Kinh nghiệm", count: 76 },
-  { name: "Ôn thi", count: 65 },
-];
+
 
 export default function ForumPage() {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<PostDto[]>([]);
   const [tab, setTab] = useState("all");
   const [myPosts, setMyPosts] = useState<PostDto[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const accountId = JSON.parse(localStorage.getItem("user") || "{}").accountId;
 
   const [__loading, setLoading] = useState<boolean>(true);
   const [__error, setError] = useState<string | null>(null);
+  const storedUser = localStorage.getItem("user");
+  const user = JSON.parse(storedUser || "{}");
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
 
-        const storedUser = localStorage.getItem("user");
-
         let res;
 
         if (storedUser) {
-          const user = JSON.parse(storedUser);
           const accountId = parseInt(user?.id); // hoặc Number(user.id)
           res = await api.get(`/forum/api/posts/all/${accountId}`);
           console.log(res);
@@ -115,6 +108,16 @@ export default function ForumPage() {
 
     fetchMyPosts();
   }, [tab, accountId]);
+  const filteredMyPosts = myPosts
+    .filter((post) => post.status !== "DELETED")
+    .filter((post) =>
+      post.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  const filteredPosts = posts
+    .filter((post) => post.status === "ACTIVE")
+    .filter((post) =>
+      post.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -145,6 +148,8 @@ export default function ForumPage() {
                 <Input
                   type="text"
                   placeholder="Tìm kiếm bài viết..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full py-2 pl-10 pr-4 rounded-lg"
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -163,25 +168,14 @@ export default function ForumPage() {
                 <TabsTrigger value="my-posts">Bài viết của tôi</TabsTrigger>
               </TabsList>
               <TabsContent value="all">
-                {/* Posts List */}
                 <div className="space-y-6">
-                  {posts
-                    .filter((post) => post.status === "ACTIVE")
-                    .map((post) => (
+                  {filteredPosts.length > 0 ? (
+                    filteredPosts.map((post) => (
                       <Link key={post.id} to={`/forum-details/${post.id}`}>
                         <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer mb-5">
                           <CardHeader className="pb-2">
                             <div className="flex justify-between">
                               <div className="flex items-center space-x-4">
-                                {/* <Avatar>
-                                <AvatarImage
-                                  src={post.author.avatar || "/placeholder.svg"}
-                                  alt={post.author.name}
-                                />
-                                <AvatarFallback>
-                                  {post.author.name.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar> */}
                                 <div>
                                   <p className="text-sm font-medium">
                                     {post.accountName}
@@ -204,17 +198,7 @@ export default function ForumPage() {
                               {post.content}
                             </p>
                             <div className="flex flex-wrap gap-2">
-                              {/* topic  */}
-                              {/* {post.tags.map((tag, index) => (
-                              <Badge
-                                key={index}
-                                variant="secondary"
-                                className="bg-gray-100"
-                              >
-                                <Tag className="w-3 h-3 mr-1" />
-                                {tag}
-                              </Badge>
-                            ))} */}
+                              {/* tags nếu cần */}
                             </div>
                           </CardContent>
                           <CardFooter className="border-t pt-4">
@@ -232,7 +216,7 @@ export default function ForumPage() {
                                           ? "text-blue-500"
                                           : "text-gray-500"
                                       }`}
-                                      fill={post?.liked ? "#3b82f6" : "none"} // Màu nền khi đã thích
+                                      fill={post?.liked ? "#3b82f6" : "none"}
                                     />
                                     {post?.liked ? "Đã thích" : "Thích"}(
                                     {post.likeCount})
@@ -247,50 +231,26 @@ export default function ForumPage() {
                           </CardFooter>
                         </Card>
                       </Link>
-                    ))}
-                </div>
-
-                {/* Pagination */}
-                <div className="flex justify-center mt-8">
-                  <div className="flex space-x-1">
-                    <Button variant="outline" size="sm" disabled>
-                      Trước
-                    </Button>
-                    <Button variant="outline" size="sm" className="bg-blue-50">
-                      1
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      2
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      3
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Sau
-                    </Button>
-                  </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500">
+                      {searchTerm
+                        ? "Không tìm thấy bài viết phù hợp."
+                        : "Hiện chưa có bài viết nào."}
+                    </div>
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent value="my-posts">
                 <div className="space-y-6">
-                  {myPosts
-                    .filter((post) => post.status !== "DELETED")
-                    .map((post) => (
+                  {filteredMyPosts.length > 0 ? (
+                    filteredMyPosts.map((post) => (
                       <Link key={post.id} to={`/forum-details/${post.id}`}>
                         <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer mb-5">
                           <CardHeader className="pb-2">
                             <div className="flex justify-between">
                               <div className="flex items-center space-x-4">
-                                {/* <Avatar>
-                                <AvatarImage
-                                  src={post.author.avatar || "/placeholder.svg"}
-                                  alt={post.author.name}
-                                />
-                                <AvatarFallback>
-                                  {post.author.name.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar> */}
                                 <div>
                                   <p className="text-sm font-medium">
                                     {post.accountName}
@@ -322,17 +282,7 @@ export default function ForumPage() {
                               {post.content}
                             </p>
                             <div className="flex flex-wrap gap-2">
-                              {/* topic  */}
-                              {/* {post.tags.map((tag, index) => (
-                              <Badge
-                                key={index}
-                                variant="secondary"
-                                className="bg-gray-100"
-                              >
-                                <Tag className="w-3 h-3 mr-1" />
-                                {tag}
-                              </Badge>
-                            ))} */}
+                              {/* topic tags */}
                             </div>
                           </CardContent>
                           <CardFooter className="border-t pt-4">
@@ -343,6 +293,7 @@ export default function ForumPage() {
                                     variant="ghost"
                                     size="sm"
                                     className="flex items-center"
+                                    disabled={post.status === "BLOCKED"}
                                   >
                                     <ThumbsUp
                                       className={`w-4 h-4 mr-2 ${
@@ -350,7 +301,7 @@ export default function ForumPage() {
                                           ? "text-blue-500"
                                           : "text-gray-500"
                                       }`}
-                                      fill={post?.liked ? "#3b82f6" : "none"} // Màu nền khi đã thích
+                                      fill={post?.liked ? "#3b82f6" : "none"}
                                     />
                                     {post?.liked ? "Đã thích" : "Thích"}(
                                     {post.likeCount})
@@ -365,7 +316,14 @@ export default function ForumPage() {
                           </CardFooter>
                         </Card>
                       </Link>
-                    ))}
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500">
+                      {searchTerm
+                        ? "Không tìm thấy bài viết phù hợp."
+                        : "Bạn chưa có bài viết nào."}
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
@@ -394,27 +352,68 @@ export default function ForumPage() {
             </Card>
 
             {/* Popular Topics */}
-            <Card>
-              <CardHeader className="pb-2">
-                <h3 className="font-bold text-lg">Chủ đề phổ biến</h3>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {popularTopics.map((topic, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center"
-                    >
-                      <div className="flex items-center">
-                        <Tag className="w-4 h-4 mr-2 text-blue-500" />
-                        <span className="text-gray-700">{topic.name}</span>
-                      </div>
-                      <Badge variant="secondary">{topic.count}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {user?.role !== "PREMIUM" && (
+              <Card>
+                <CardHeader className="pb-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-t-lg">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    <Star className="w-5 h-5 text-yellow-300" />
+                    KAKAN Premium
+                  </h3>
+                  <p className="text-sm mt-1">
+                    Trải nghiệm đầy đủ các tính năng cao cấp của KAKAN
+                  </p>
+                </CardHeader>
+
+                <CardContent className="text-sm text-gray-800 space-y-3 mt-3">
+                  <div className="flex gap-2 items-start">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <span>
+                      Tra cứu thông tin học bạ từ mọi nơi về hệ thống tuyển sinh
+                    </span>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <span>Hiển thị học lực và điểm số chi tiết</span>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <span>So sánh thành tích học tập</span>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <span>Tư vấn tuyển sinh AI dựa trên điểm và sở thích</span>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <span>Cập nhật thông tin tuyển sinh liên tục</span>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <span>Không giới hạn số lần tra cứu</span>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <span>Ưu tiên hỗ trợ kỹ thuật 24/7</span>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                    <span>Truy cập báo cáo phân tích chuyên sâu</span>
+                  </div>
+
+                  <p className="text-xs text-gray-500 italic">
+                    Chúng tôi cam kết cung cấp thông tin chính xác nhất. Nếu bạn
+                    không hài lòng, hoàn tiền 100% trong 7 ngày đầu tiên.
+                  </p>
+
+                  <button
+                    onClick={() => navigate("/register-premium")}
+                    className="w-full bg-blue-600 text-white font-semibold py-2 rounded mt-2 hover:bg-blue-700 transition"
+                  >
+                    Đăng ký Premium ngay
+                  </button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </section>

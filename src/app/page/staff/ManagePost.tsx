@@ -36,25 +36,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "../../components/ui/alert-dialog";
+
 import {
   Search,
   Plus,
   Trash2,
   Ban,
   MoreHorizontal,
-  Building2,
-  FileText,
+
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -66,8 +55,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { api } from "../../hooks/api";
 import { toast } from "react-toastify";
-import { useUser } from "../../hooks/userContext";
 import { StaffHeader } from "../../components/staff-header";
+import ConfirmDeleteDialog from "../../components/confirmDelete";
 
 interface PostDto {
   id: string;
@@ -90,6 +79,9 @@ export default function ManagePost() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("Tất cả");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [openDeleteDialogPostId, setOpenDeleteDialogPostId] = useState<
+    string | null
+  >(null);
 
   const [accountId, setAccountId] = useState<number | null>(null);
   const [newPost, setNewPost] = useState({
@@ -98,11 +90,7 @@ export default function ManagePost() {
     topicId: [] as number[],
     accountId: "",
   });
-  const { logout } = useUser();
-  const handleLogout = () => {
-    logout(); // Xóa token và user khỏi localStorage + state
-    navigate("/login"); // Điều hướng về trang login (hoặc trang chủ)
-  };
+
   const navigate = useNavigate();
   const fetchPost = async () => {
     const storedUser = localStorage.getItem("user");
@@ -484,37 +472,15 @@ export default function ManagePost() {
                               )}
 
                               {/* Xóa luôn hiển thị nếu không phải DELETED */}
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem
-                                    onSelect={(e: any) => e.preventDefault()}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Xóa
-                                  </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent className="bg-white">
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      Xác nhận xóa
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Bạn có chắc chắn muốn xóa bài viết "
-                                      {post.title}"? Hành động này không thể
-                                      hoàn tác.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDeletePost(post.id)}
-                                      className="bg-red-600 hover:bg-red-700"
-                                    >
-                                      Xóa
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() =>
+                                  setOpenDeleteDialogPostId(post.id)
+                                }
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <p className="ml-3">Xóa</p>
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
@@ -523,6 +489,19 @@ export default function ManagePost() {
                   ))}
                 </TableBody>
               </Table>
+              {openDeleteDialogPostId && (
+                <ConfirmDeleteDialog
+                  title={`Xác nhận xoá bài viết "${openDeleteDialogPostId}"`}
+                  description="Bạn có chắc chắn muốn xoá bài viết này không?"
+                  onConfirm={() => {
+                    handleDeletePost(openDeleteDialogPostId);
+                  }}
+                  open={!!openDeleteDialogPostId}
+                  onOpenChange={(open) => {
+                    if (!open) setOpenDeleteDialogPostId(null);
+                  }}
+                />
+              )}
             </div>
 
             {filteredPosts.length === 0 && (

@@ -38,6 +38,7 @@ import {
   Users,
   Calendar,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import {
   Tabs,
@@ -47,6 +48,8 @@ import {
 } from "../../components/ui/tabs";
 import { StaffHeader } from "../../components/staff-header";
 import { api } from "../../hooks/api";
+import { toast } from "react-toastify";
+import ConfirmDeleteDialog from "../../components/confirmDelete";
 
 interface University {
   id: string;
@@ -102,19 +105,19 @@ export default function ManageUniversities() {
   const [__loading, setLoading] = useState<boolean>(true);
   const [__error, setError] = useState<string>("");
 
+  const fetchUniversities = async () => {
+    try {
+      const response = await api.get("/school/api/university");
+      console.log(response);
+      setUniversities(response.data.data);
+      console.log(response.data.data);
+    } catch (err: any) {
+      setError(err.message || "Lỗi khi lấy dữ liệu");
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchUniversities = async () => {
-      try {
-        const response = await api.get("/school/api/university");
-        console.log(response);
-        setUniversities(response.data.data);
-        console.log(response.data.data);
-      } catch (err: any) {
-        setError(err.message || "Lỗi khi lấy dữ liệu");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchUniversities();
   }, []);
 
@@ -141,6 +144,27 @@ export default function ManageUniversities() {
       if (selectedUniversity?.id === editingUniversity.id) {
         setSelectedUniversity(editingUniversity);
       }
+    }
+  };
+
+  const handleDeleteUniversity = async (name: string) => {
+    setSelectedUniversity(null);
+
+    try {
+      const response = await api.delete("/school/api/university", {
+        params: { name }, // gửi dưới dạng ?name=XYZ
+      });
+
+      if (response.data.status === 200) {
+        toast.success("Xoá thành công!");
+        // Xoá trên giao diện
+        fetchUniversities(); // Cập nhật lại danh sách
+      } else {
+        toast.error(response.data.message || "Xoá thất bại");
+      }
+    } catch (error: any) {
+      console.error("Lỗi xoá:", error);
+      toast.error(error.response?.data?.message || "Lỗi hệ thống khi xoá");
     }
   };
 
@@ -194,6 +218,19 @@ export default function ManageUniversities() {
                   <Pencil className="w-4 h-4 mr-1" />
                   Chỉnh sửa
                 </Button>
+                <ConfirmDeleteDialog
+                  title={`Xác nhận xoá trường "${selectedUniversity.name}"`}
+                  description="Bạn có chắc chắn muốn xoá trường này không?"
+                  onConfirm={() =>
+                    handleDeleteUniversity(selectedUniversity.name)
+                  }
+                  trigger={
+                    <Button variant="outline" size="sm">
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Xóa
+                    </Button>
+                  }
+                />
               </div>
             </CardContent>
           </Card>
@@ -595,7 +632,7 @@ export default function ManageUniversities() {
               <div className="text-2xl font-bold text-green-600">
                 {
                   universities.filter((u) =>
-                    u.thongTinChung.loaiTruong.includes("công lập")
+                    u.thongTinChung.loaiTruong.includes("Công lập")
                   ).length
                 }
               </div>
@@ -604,7 +641,7 @@ export default function ManageUniversities() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Trường tư thục
+                Trường dân lập
               </CardTitle>
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -612,7 +649,7 @@ export default function ManageUniversities() {
               <div className="text-2xl font-bold text-blue-600">
                 {
                   universities.filter((u) =>
-                    u.thongTinChung.loaiTruong.includes("tư thục")
+                    u.thongTinChung.loaiTruong.includes("Dân lập")
                   ).length
                 }
               </div>
