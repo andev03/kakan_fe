@@ -309,6 +309,15 @@ export default function ForumPage() {
                             <h3 className="text-xl font-bold mb-2 text-gray-900">
                               {post.title}
                             </h3>
+
+                            {post.status !== "ACTIVE" && (
+                              <p className="text-sm font-semibold text-red-500 mb-2 uppercase">
+                                {post.status === "BLOCKED" &&
+                                  "Bài viết đã bị chặn"}
+                                {post.status === "DELETED" &&
+                                  "Bài viết đã bị xoá"}
+                              </p>
+                            )}
                             <p className="text-gray-600 line-clamp-2 mb-4">
                               {post.content}
                             </p>

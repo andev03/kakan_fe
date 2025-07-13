@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import Header from "../components/header";
 import { useState } from "react";
 import { Button } from "../components/ui/button";
@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { api } from "../hooks/api";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 interface UserDTO {
   userId: number;
@@ -48,7 +49,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [userInfo, setUserInfo] = useState<UserDTO | null>(null);
   const [__loading, setLoading] = useState<boolean>(true);
-
+  const navigate = useNavigate();
   const fetchUserInfo = async () => {
     try {
       const response = await api.get("/user/api/user/information/");
@@ -71,39 +72,46 @@ export default function ProfilePage() {
     fetchUserInfo();
   }, []);
 
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleSave = async () => {
     setIsEditing(false);
     console.log("Saving user info:", userInfo);
 
     try {
-      const formData = new FormData();
+      let avatarBase64 = userInfo?.avatarUrl;
 
-      // Bước 1: Đóng gói object thông tin (trừ avatarFile) dưới dạng JSON
+      if (userInfo?.avatarFile instanceof File) {
+        avatarBase64 = await convertToBase64(userInfo.avatarFile);
+      }
       const userData = {
         fullName: userInfo?.fullName,
         phone: userInfo?.phone,
         address: userInfo?.address,
-        gender: userInfo?.gender,
-        dob: userInfo?.dob,
+        // gender: userInfo?.gender,
+        // dob: userInfo?.dob,
+        avatarUrl: avatarBase64,
       };
 
-      formData.append(
-        "data",
-        new Blob([JSON.stringify(userData)], { type: "application/json" })
-      );
-
-      // Bước 2: Nếu có avatar, thêm file
-      if (userInfo?.avatarFile instanceof File) {
-        formData.append("avatarFile", userInfo.avatarFile);
-      }
+      // Kiểm tra lại nội dung của formData
 
       // Gọi API
-      const response = await api.put("/user/api/user/information", formData);
+      console.log("update thong tin ", userData);
+      const response = await api.put("/user/api/user/information", userData);
 
       if (response.data.status === 200) {
         toast.success("Cập nhật thành công");
         fetchUserInfo();
+        console.log("update thanh cong", response);
       } else {
+        console.error("Cập nhật thất bại:", response);
         toast.error(response.data.message || "Cập nhật thất bại");
       }
     } catch (error: any) {
@@ -297,31 +305,6 @@ export default function ProfilePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="gpa">GPA</Label>
-                    {isEditing ? (
-                      <Input
-                        id="gpa"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="4"
-                        value={userInfo?.gpa || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "gpa",
-                            e.target.value
-                              ? Number.parseFloat(e.target.value)
-                              : null
-                          )
-                        }
-                        placeholder="Chưa cập nhật"
-                      />
-                    ) : (
-                      <div className="p-2 bg-gray-50 rounded border">
-                        {userInfo?.gpa
-                          ? userInfo.gpa.toFixed(2)
-                          : "Chưa cập nhật"}
-                      </div>
-                    )}
                   </div>
                 </div>
               </CardContent>
@@ -339,7 +322,7 @@ export default function ProfilePage() {
                 <Button
                   variant="outline"
                   className="w-full justify-start h-12 hover:bg-blue-50 hover:border-blue-200 bg-transparent"
-                  onClick={() => console.log("Navigate to Forum")}
+                  onClick={() => navigate("/forum")}
                 >
                   <MessageSquare className="w-5 h-5 mr-3 text-blue-600" />
                   <div className="text-left">
@@ -353,7 +336,7 @@ export default function ProfilePage() {
                 <Button
                   variant="outline"
                   className="w-full justify-start h-12 hover:bg-green-50 hover:border-green-200 bg-transparent"
-                  onClick={() => console.log("Navigate to Score Calculator")}
+                  onClick={() => navigate("/calculate")}
                 >
                   <Calculator className="w-5 h-5 mr-3 text-green-600" />
                   <div className="text-left">
@@ -367,7 +350,7 @@ export default function ProfilePage() {
                 <Button
                   variant="outline"
                   className="w-full justify-start h-12 hover:bg-purple-50 hover:border-purple-200 bg-transparent"
-                  onClick={() => console.log("Navigate to Universities")}
+                  onClick={() => navigate("/universities")}
                 >
                   <GraduationCap className="w-5 h-5 mr-3 text-purple-600" />
                   <div className="text-left">

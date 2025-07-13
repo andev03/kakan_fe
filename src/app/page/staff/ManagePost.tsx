@@ -47,17 +47,27 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../../components/ui/alert-dialog";
-import { Search, Plus, Trash2, Ban, MoreHorizontal } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Trash2,
+  Ban,
+  MoreHorizontal,
+  Building2,
+  FileText,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
+
 import { useNavigate } from "react-router-dom";
-import LogoName from "../../components/logoName";
 import { api } from "../../hooks/api";
 import { toast } from "react-toastify";
+import { useUser } from "../../hooks/userContext";
+import { StaffHeader } from "../../components/staff-header";
 
 interface PostDto {
   id: string;
@@ -71,53 +81,6 @@ interface PostDto {
   topicName: string[];
   liked: boolean;
 }
-
-// const initialPosts: Post[] = [
-//   {
-//     id: "1",
-//     title: "Welcome Post",
-//     content: "Chào mừng các bạn đến với diễn đàn tuyển sinh...",
-//     accountName: "Admin",
-//     topicName: "Thông báo",
-//     status: "active",
-//     createdAt: "2024-01-15",
-//     likeCount: 25,
-//     commentCount: 8,
-//   },
-//   {
-//     id: "2",
-//     title: "Kotlin Dilemma",
-//     content: "Tôi đang gặp khó khăn với Kotlin...",
-//     author: "NguyenVanA",
-//     category: "Lập trình",
-//     status: "active",
-//     createdAt: "2024-01-14",
-//     likes: 12,
-//     comments: 5,
-//   },
-//   {
-//     id: "3",
-//     title: "Spring Boot Tips",
-//     content: "Chia sẻ một số tips về Spring Boot...",
-//     author: "TranThiB",
-//     category: "Lập trình",
-//     status: "blocked",
-//     createdAt: "2024-01-13",
-//     likes: 18,
-//     comments: 3,
-//   },
-//   {
-//     id: "4",
-//     title: "Hướng dẫn tuyển sinh 2024",
-//     content: "Thông tin chi tiết về quy trình tuyển sinh...",
-//     author: "AdminTuyenSinh",
-//     category: "Tuyển sinh",
-//     status: "active",
-//     createdAt: "2024-01-12",
-//     likes: 45,
-//     comments: 15,
-//   },
-// ];
 
 export default function ManagePost() {
   const [posts, setPosts] = useState<PostDto[]>([]);
@@ -135,7 +98,11 @@ export default function ManagePost() {
     topicId: [] as number[],
     accountId: "",
   });
-
+  const { logout } = useUser();
+  const handleLogout = () => {
+    logout(); // Xóa token và user khỏi localStorage + state
+    navigate("/login"); // Điều hướng về trang login (hoặc trang chủ)
+  };
   const navigate = useNavigate();
   const fetchPost = async () => {
     const storedUser = localStorage.getItem("user");
@@ -252,26 +219,7 @@ export default function ManagePost() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-5xl font-bold">
-                <LogoName />
-              </h1>
-              <span className="text-xl text-gray-500 ml-8">
-                Staff Dashboard
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">Xin chào, Staff</span>
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                S
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <StaffHeader />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}

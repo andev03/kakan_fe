@@ -13,6 +13,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProfilePage from "../page/ProfilePage";
 import ManagePost from "../page/staff/ManagePost";
+import ManageUser from "../page/admin/ManageUser";
+import ManageUniversities from "../page/staff/ManageUniversities";
 
 const MainRoutes = () => {
   return (
@@ -35,6 +37,8 @@ const MainRoutes = () => {
           />
           <Route path="/forum-details/:postId" element={<ForumDetail />} />
           <Route path="/manage-post" element={<ManagePost />} />
+          <Route path="/manage-universities" element={<ManageUniversities />} />
+          <Route path="/manage-user" element={<ManageUser />} />
         </Routes>
       </BrowserRouter>
     </>

@@ -70,7 +70,7 @@ export default function LoginPage() {
         console.log("ROLE", role);
         switch (role) {
           case "ADMIN":
-            navigate("/admin");
+            navigate("/manage-user");
             break;
           case "STUDENT":
             navigate("/");
