@@ -100,9 +100,6 @@ export default function ProfilePage() {
         avatarUrl: avatarBase64,
       };
 
-      // Kiểm tra lại nội dung của formData
-
-      // Gọi API
       console.log("update thong tin ", userData);
       const response = await api.put("/user/api/user/information", userData);
 
