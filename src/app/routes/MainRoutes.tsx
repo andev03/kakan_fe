@@ -40,7 +40,7 @@ const MainRoutes = () => {
           <Route path="/manage-post" element={<ManagePost />} />
           <Route path="/manage-universities" element={<ManageUniversities />} />
           <Route path="/manage-user" element={<ManageUser />} />
-          <Route path="/google/callback" element={<GoogleCallBack />} />
+          <Route path="/login/success" element={<GoogleCallBack />} />
         </Routes>
       </BrowserRouter>
     </>

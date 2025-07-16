@@ -2,9 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface User {
-  id: string, 
-  email: string;
-  userNamae: string;
+  username: string;
   role:string;
   token: string;
   // thêm các trường khác nếu cần, ví dụ: id, role, name...
