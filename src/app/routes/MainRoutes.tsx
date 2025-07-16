@@ -15,6 +15,7 @@ import ProfilePage from "../page/ProfilePage";
 import ManagePost from "../page/staff/ManagePost";
 import ManageUser from "../page/admin/ManageUser";
 import ManageUniversities from "../page/staff/ManageUniversities";
+import GoogleCallBack from "../components/loginGoogle.tsx/loginGoogle";
 
 const MainRoutes = () => {
   return (
@@ -39,6 +40,7 @@ const MainRoutes = () => {
           <Route path="/manage-post" element={<ManagePost />} />
           <Route path="/manage-universities" element={<ManageUniversities />} />
           <Route path="/manage-user" element={<ManageUser />} />
+          <Route path="/google/callback" element={<GoogleCallBack />} />
         </Routes>
       </BrowserRouter>
     </>

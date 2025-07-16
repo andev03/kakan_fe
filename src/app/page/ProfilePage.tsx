@@ -41,9 +41,8 @@ interface UserDTO {
   dob: string; // dạng ISO string, bạn có thể định dạng lại sau
   phone: string;
   address: string;
-  avatarUrl: string;
+  avatarUrl: File | string;
   gpa: number;
-  avatarFile?: File;
 }
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -86,27 +85,26 @@ export default function ProfilePage() {
     console.log("Saving user info:", userInfo);
 
     try {
-      let avatarBase64 = userInfo?.avatarUrl;
+      const formData = new FormData();
 
-      if (userInfo?.avatarFile instanceof File) {
-        avatarBase64 = await convertToBase64(userInfo.avatarFile);
+      formData.append("fullName", userInfo?.fullName || "");
+      formData.append("phone", userInfo?.phone || "");
+      formData.append("address", userInfo?.address || "");
+
+      if (userInfo?.avatarUrl instanceof File) {
+        formData.append("avatarUrl", userInfo?.avatarUrl); // avatarUrl là File
       }
-      const userData = {
-        fullName: userInfo?.fullName,
-        phone: userInfo?.phone,
-        address: userInfo?.address,
-        // gender: userInfo?.gender,
-        // dob: userInfo?.dob,
-        avatarUrl: avatarBase64,
-      };
 
-      console.log("update thong tin ", userData);
-      const response = await api.put("/user/api/user/information", userData);
+      console.log("update du lien", formData);
+      const response = await api.put("/user/api/update/information", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (response.data.status === 200) {
         toast.success("Cập nhật thành công");
         fetchUserInfo();
-        console.log("update thanh cong", response);
       } else {
         console.error("Cập nhật thất bại:", response);
         toast.error(response.data.message || "Cập nhật thất bại");
@@ -168,32 +166,53 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Avatar Section */}
-                <div className="flex items-center gap-4">
-                  <Avatar className="w-20 h-20">
-                    <AvatarImage
-                      src={userInfo?.avatarUrl || "/placeholder.svg"}
-                      alt={userInfo?.fullName}
-                    />
-                    <AvatarFallback className="text-lg">
-                      {userInfo?.fullName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
+                <div className="flex items-center gap-6">
+                  <label htmlFor="avatar-upload" className="cursor-pointer">
+                    <Avatar className="w-20 h-20">
+                      <AvatarImage
+                        src={
+                          typeof userInfo?.avatarUrl === "string"
+                            ? userInfo.avatarUrl
+                            : "/placeholder.svg"
+                        }
+                        alt={userInfo?.fullName}
+                      />
+                      <AvatarFallback className="text-lg">
+                        {userInfo?.fullName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                  </label>
+
+                  <div className="flex flex-col">
+                    <label
+                      htmlFor="avatar-upload"
+                      className={`text-blue-600 underline cursor-pointer ${
+                        !isEditing ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      {isEditing ? "Chọn ảnh mới" : "Không thể thay đổi ảnh"}
+                    </label>
+
+                    {/* Nếu muốn, có thể hiển thị tên file đã chọn ở đây */}
+                  </div>
 
                   <input
+                    id="avatar-upload"
                     type="file"
                     accept="image/*"
+                    disabled={!isEditing}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        handleInputChange("avatarFile", file); // lưu file vào state
+                        handleInputChange("avatarUrl", file); // lưu vào state
                       }
                     }}
+                    hidden // ẩn input gốc
                   />
-
-                  <div>
+                  <div className="flex flex-col ml-13">
                     <h3 className="text-lg font-semibold">
                       {userInfo?.fullName}
                     </h3>
@@ -302,6 +321,9 @@ export default function ProfilePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="gpa">GPA</Label>
+                    <div className="p-2 bg-gray-50 rounded border">
+                      {userInfo?.gpa ? userInfo.gpa.toFixed(2) : "Chưa có"}
+                    </div>
                   </div>
                 </div>
               </CardContent>

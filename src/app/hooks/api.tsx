@@ -10,9 +10,9 @@ const baseURL = "http://localhost:8800"; // Tất cả gọi qua API Gateway
 export const api = axios.create({
   baseURL,
   timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // headers: {
+  //   "Content-Type": "application/json",
+  // },
 });
 
 // Interceptors: Thêm token vào headers nếu có
