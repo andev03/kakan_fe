@@ -1,6 +1,7 @@
 import { useEffect, useContext, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserContext } from "../../hooks/userContext";
+import { toast } from "react-toastify";
 
 const GoogleCallBack = () => {
   const [searchParams] = useSearchParams();
@@ -20,6 +21,7 @@ const GoogleCallBack = () => {
     console.log(token);
     if (token === null) {
       console.error("Không tìm thấy token từ Google.");
+      toast.error("Tài khoản của bạn đã bị khóa hoặc không hợp lệ.");
       navigate("/login");
       return;
     }

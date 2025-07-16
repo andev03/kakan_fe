@@ -246,6 +246,7 @@ export default function LoginPage() {
 
               {/* Login Tab */}
               {activeTab === "login" && (
+                <>
                 <form onSubmit={handleLogin}>
                   <div className="space-y-4">
                     <div className="space-y-2">
@@ -296,8 +297,7 @@ export default function LoginPage() {
                     </button>
                   </div>
                 </form>
-              )}
-              <div className="relative my-6">
+                              <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
@@ -332,6 +332,9 @@ export default function LoginPage() {
                 </svg>
                 Đăng nhập bằng Google
               </button>
+                </>
+              )}
+
 
               {/* Register Tab */}
               {activeTab === "register" && (
