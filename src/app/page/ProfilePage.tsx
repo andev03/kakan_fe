@@ -71,15 +71,6 @@ export default function ProfilePage() {
     fetchUserInfo();
   }, []);
 
-  const convertToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
   const handleSave = async () => {
     setIsEditing(false);
     console.log("Saving user info:", userInfo);
@@ -90,7 +81,8 @@ export default function ProfilePage() {
       formData.append("fullName", userInfo?.fullName || "");
       formData.append("phone", userInfo?.phone || "");
       formData.append("address", userInfo?.address || "");
-
+      formData.append("dob", userInfo?.dob || "");
+      formData.append("gender", String(userInfo?.gender ?? ""));
       if (userInfo?.avatarUrl instanceof File) {
         formData.append("avatarUrl", userInfo?.avatarUrl); // avatarUrl là File
       }
@@ -258,7 +250,11 @@ export default function ProfilePage() {
                       </Select>
                     ) : (
                       <div className="p-2 bg-gray-50 rounded border">
-                        {userInfo?.gender ? "Nam" : "Nữ"}
+                        {userInfo?.gender === true
+                          ? "Nam"
+                          : userInfo?.gender === false
+                          ? "Nữ"
+                          : "Chưa có"}
                       </div>
                     )}
                   </div>
