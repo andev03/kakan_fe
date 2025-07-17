@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   ArrowLeft,
@@ -12,10 +12,23 @@ import {
   BookOpen,
 } from "lucide-react";
 import LogoName from "../components/logoName";
-
+import { api } from "../hooks/api";
+interface UserDTO {
+  userId: number;
+  fullName: string;
+  gender: boolean;
+  dob: string; // dạng ISO string, bạn có thể định dạng lại sau
+  phone: string;
+  address: string;
+  avatarUrl: File | string;
+  gpa: number;
+  email: string;
+}
 export default function PremiumRegisterPage() {
   const [paymentMethod, setPaymentMethod] = useState("momo");
-
+  const [userInfo, setUserInfo] = useState<UserDTO | null>(null);
+  const [__loading, setLoading] = useState<boolean>(true);
+  const [orderId, setOrderId] = useState<number | null>(null);
   const premiumFeatures = [
     {
       title: "Tra cứu thông tin học bạ",
@@ -47,7 +60,63 @@ export default function PremiumRegisterPage() {
       icon: Clock,
     },
   ];
+  const fetchUserInfo = async () => {
+    try {
+      const response = await api.get("/user/api/user/information/");
+      console.log("profile", response);
+      if (response.data.status === 200) {
+        setUserInfo(response.data.data);
+      } else {
+        console.error(
+          "Không lấy được thông tin người dùng:",
+          response.data.message
+        );
+      }
+    } catch (error: any) {
+      console.error("Lỗi khi gọi API thông tin người dùng:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchUserInfo();
+  }, []);
 
+  const handleVNPay = async () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const accountId = parseInt(user.id);
+    console.log(user);
+    if (!accountId) {
+      console.error("Không tìm thấy accountId trong localStorage");
+      return;
+    }
+
+    const orderData = {
+      accountId: accountId,
+      amount: 50000.0,
+    };
+
+    console.log(orderData);
+
+    try {
+      const order = await api.post("/order/api/orders/create", orderData);
+      console.log("Order created:", order.data);
+      setOrderId(order.data.data.orderId);
+      if (order.status === 200) {
+        const vnpay = await api.get(
+          `/payment/api/vnpay/url/${accountId}/${order.data.data.orderId}`
+        );
+
+        window.location.href = vnpay.data.data.paymentUrl;
+        console.log("VNPay URL:", vnpay.data);
+
+        return;
+      }
+      // Có thể chuyển hướng sang trang thanh toán VNPay tại đây
+    } catch (error) {
+      console.error("Lỗi khi tạo đơn hàng:", error);
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-white">
       <div className="container mx-auto px-4 py-8">
@@ -93,8 +162,10 @@ export default function PremiumRegisterPage() {
                     Email
                   </label>
                   <input
+                    disabled
                     id="email"
                     type="email"
+                    value={userInfo?.email || ""}
                     placeholder="email@example.com"
                     className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                   />
@@ -107,8 +178,10 @@ export default function PremiumRegisterPage() {
                     Số điện thoại
                   </label>
                   <input
+                    disabled
                     id="phone"
                     type="tel"
+                    value={userInfo?.phone || ""}
                     placeholder="0912 345 678"
                     className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                   />
@@ -121,7 +194,9 @@ export default function PremiumRegisterPage() {
                     Họ và tên
                   </label>
                   <input
+                    disabled
                     id="name"
+                    value={userInfo?.fullName || ""}
                     placeholder="Nguyễn Văn A"
                     className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                   />
@@ -156,10 +231,9 @@ export default function PremiumRegisterPage() {
                   </label>
                   <div className="space-y-3">
                     {[
-                      { id: "banking", label: "Internet Banking", icon: null },
                       {
                         id: "momo",
-                        label: "Ví điện tử (MoMo, ZaloPay)",
+                        label: "Ví điện tử (VNPay)",
                         icon: null,
                       },
                     ].map((method) => (
@@ -171,10 +245,8 @@ export default function PremiumRegisterPage() {
                         <input
                           type="radio"
                           id={method.id}
-                          name="paymentMethod"
-                          value={method.id}
                           checked={paymentMethod === method.id}
-                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          name="paymentMethod"
                           className="text-sky-500 focus:ring-sky-500"
                         />
                         <label
@@ -190,7 +262,10 @@ export default function PremiumRegisterPage() {
               </div>
 
               <div className="mt-6">
-                <button className="w-full h-12 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors mb-3">
+                <button
+                  onClick={handleVNPay}
+                  className="w-full h-12 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors mb-3"
+                >
                   Thanh toán 30.000đ
                 </button>
                 <p className="text-xs text-center text-slate-500">

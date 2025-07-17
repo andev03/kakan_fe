@@ -7,7 +7,7 @@ const GoogleCallBack = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const username = decodeURIComponent(searchParams.get("username")!);
-
+  const error = searchParams.get("error");
   const role = searchParams.get("role");
   const navigate = useNavigate();
   const userContext = useContext(UserContext);
@@ -19,10 +19,16 @@ const GoogleCallBack = () => {
     hasRun.current = true; // Đánh dấu đã chạy
 
     console.log(token);
-    if (token === null) {
+    if (!token) {
       console.error("Không tìm thấy token từ Google.");
-      toast.error("Tài khoản của bạn đã bị khóa hoặc không hợp lệ.");
-      navigate("/login");
+
+      setTimeout(() => {
+        navigate("/login", {
+          state: {
+            toastMessage: "Đăng nhập Google thất bại. Vui lòng thử lại.",
+          },
+        });
+      }, 100);
       return;
     }
 
