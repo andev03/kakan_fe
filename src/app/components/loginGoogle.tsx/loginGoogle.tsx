@@ -1,13 +1,11 @@
 import { useEffect, useContext, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserContext } from "../../hooks/userContext";
-import { toast } from "react-toastify";
 
 const GoogleCallBack = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const username = decodeURIComponent(searchParams.get("username")!);
-  const error = searchParams.get("error");
   const role = searchParams.get("role");
   const navigate = useNavigate();
   const userContext = useContext(UserContext);

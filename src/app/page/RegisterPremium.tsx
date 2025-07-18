@@ -28,7 +28,7 @@ export default function PremiumRegisterPage() {
   const [paymentMethod, setPaymentMethod] = useState("momo");
   const [userInfo, setUserInfo] = useState<UserDTO | null>(null);
   const [__loading, setLoading] = useState<boolean>(true);
-  const [orderId, setOrderId] = useState<number | null>(null);
+  const [__orderId, setOrderId] = useState<number | null>(null);
   const premiumFeatures = [
     {
       title: "Tra cứu thông tin học bạ",
@@ -214,7 +214,7 @@ export default function PremiumRegisterPage() {
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-sky-600">
-                            30.000đ
+                            50.000đ
                           </div>
                           <div className="text-sm text-slate-500">
                             mỗi tháng
@@ -266,7 +266,7 @@ export default function PremiumRegisterPage() {
                   onClick={handleVNPay}
                   className="w-full h-12 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors mb-3"
                 >
-                  Thanh toán 30.000đ
+                  Thanh toán 50.000đ
                 </button>
                 <p className="text-xs text-center text-slate-500">
                   Bằng cách nhấn vào nút thanh toán, bạn đồng ý với{" "}

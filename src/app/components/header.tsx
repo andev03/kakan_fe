@@ -15,13 +15,14 @@ export default function Header() {
     { label: "Liên hệ", path: "/contact" },
   ];
   const user = localStorage.getItem("user");
+  const role = user ? JSON.parse(user).role : null;
   const handleLogin = () => {
     navigate("/login");
   };
   const handleLogout = () => {
-  logout(); // Xóa token và user khỏi localStorage + state
-  navigate("/login"); // Điều hướng về trang login (hoặc trang chủ)
-};
+    logout(); // Xóa token và user khỏi localStorage + state
+    navigate("/login"); // Điều hướng về trang login (hoặc trang chủ)
+  };
   return (
     <header className=" bg-white border-b sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -53,12 +54,14 @@ export default function Header() {
               </button>
             ) : (
               <div className="flex items-center justify-between">
-                <button
-                  onClick={() => navigate("/register-premium")}
-                  className="px-4 py-2 text-sm bg-sky-500 hover:bg-sky-600 text-white rounded-md transition-colors cursor-pointer"
-                >
-                  Đăng ký Premium
-                </button>
+                {role !== "PREMIUM" && (
+                  <button
+                    onClick={() => navigate("/register-premium")}
+                    className="px-4 py-2 text-sm bg-sky-500 hover:bg-sky-600 text-white rounded-md transition-colors cursor-pointer"
+                  >
+                    Đăng ký Premium
+                  </button>
+                )}
 
                 <HoverCard openDelay={100} closeDelay={100}>
                   <HoverCardTrigger className="flex items-center space-x-1 cursor-pointer px-3 py-2 hover:bg-gray-100 rounded-md transition">
@@ -74,8 +77,9 @@ export default function Header() {
                     </Link>
                     <div className="border-t border-gray-100 my-1" />
                     <button
-                    onClick={handleLogout}
-                     className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100 hover:rounded-xl">
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100 hover:rounded-xl"
+                    >
                       Đăng xuất
                     </button>
                   </HoverCardContent>

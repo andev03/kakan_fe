@@ -53,8 +53,6 @@ export default function PaymentSuccess() {
       amount,
       status: statusFromParams,
     });
-
-    console.log(accountId);
   }, [location.search]);
 
   // Format số tiền
@@ -71,10 +69,8 @@ export default function PaymentSuccess() {
         accountId: accountId, // 👉 thay bằng accountId thực tế, có thể lấy từ state hoặc props
         status: status, // 👉 hoặc giá trị tương ứng với role/status cần cập nhật
       };
-
-      const response = await api.get("/user/api/updateRole", {
-        params: payload,
-      });
+      console.log(payload);
+      const response = await api.post("/user/api/updateRole", payload);
 
       if (response.status === 200) {
         console.log("Cập nhật role thành công");
