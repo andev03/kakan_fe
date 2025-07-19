@@ -13,12 +13,20 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProfilePage from "../page/ProfilePage";
 import ManagePost from "../page/staff/ManagePost";
+import ManageUser from "../page/admin/ManageUser";
+import ManageUniversities from "../page/staff/ManageUniversities";
+import GoogleCallBack from "../components/loginGoogle.tsx/loginGoogle";
+import PaymentSuccess from "../page/vnpay/PaymentSuccess";
 
 const MainRoutes = () => {
   return (
     <>
       <BrowserRouter>
-        <ToastContainer position="top-right" autoClose={3000} />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          style={{ zIndex: 9999 }}
+        />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -35,6 +43,10 @@ const MainRoutes = () => {
           />
           <Route path="/forum-details/:postId" element={<ForumDetail />} />
           <Route path="/manage-post" element={<ManagePost />} />
+          <Route path="/manage-universities" element={<ManageUniversities />} />
+          <Route path="/manage-user" element={<ManageUser />} />
+          <Route path="/login/success" element={<GoogleCallBack />} />
+          <Route path="/vnpay/success" element={<PaymentSuccess />} />
         </Routes>
       </BrowserRouter>
     </>

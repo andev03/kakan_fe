@@ -10,9 +10,9 @@ const baseURL = import.meta.env.VITE_BACKEND || "http://localhost:8800"; // Tấ
 export const api = axios.create({
   baseURL,
   timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // headers: {
+  //   "Content-Type": "application/json",
+  // },
 });
 
 // Interceptors: Thêm token vào headers nếu có

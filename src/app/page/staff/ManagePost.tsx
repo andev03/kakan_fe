@@ -36,28 +36,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
+
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "../../components/ui/alert-dialog";
-import { Search, Plus, Trash2, Ban, MoreHorizontal } from "lucide-react";
+  Search,
+  Plus,
+  Trash2,
+  Ban,
+  MoreHorizontal,
+
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
+
 import { useNavigate } from "react-router-dom";
-import LogoName from "../../components/logoName";
 import { api } from "../../hooks/api";
 import { toast } from "react-toastify";
+import { StaffHeader } from "../../components/staff-header";
+import ConfirmDeleteDialog from "../../components/confirmDelete";
 
 interface PostDto {
   id: string;
@@ -72,53 +71,6 @@ interface PostDto {
   liked: boolean;
 }
 
-// const initialPosts: Post[] = [
-//   {
-//     id: "1",
-//     title: "Welcome Post",
-//     content: "Chào mừng các bạn đến với diễn đàn tuyển sinh...",
-//     accountName: "Admin",
-//     topicName: "Thông báo",
-//     status: "active",
-//     createdAt: "2024-01-15",
-//     likeCount: 25,
-//     commentCount: 8,
-//   },
-//   {
-//     id: "2",
-//     title: "Kotlin Dilemma",
-//     content: "Tôi đang gặp khó khăn với Kotlin...",
-//     author: "NguyenVanA",
-//     category: "Lập trình",
-//     status: "active",
-//     createdAt: "2024-01-14",
-//     likes: 12,
-//     comments: 5,
-//   },
-//   {
-//     id: "3",
-//     title: "Spring Boot Tips",
-//     content: "Chia sẻ một số tips về Spring Boot...",
-//     author: "TranThiB",
-//     category: "Lập trình",
-//     status: "blocked",
-//     createdAt: "2024-01-13",
-//     likes: 18,
-//     comments: 3,
-//   },
-//   {
-//     id: "4",
-//     title: "Hướng dẫn tuyển sinh 2024",
-//     content: "Thông tin chi tiết về quy trình tuyển sinh...",
-//     author: "AdminTuyenSinh",
-//     category: "Tuyển sinh",
-//     status: "active",
-//     createdAt: "2024-01-12",
-//     likes: 45,
-//     comments: 15,
-//   },
-// ];
-
 export default function ManagePost() {
   const [posts, setPosts] = useState<PostDto[]>([]);
 
@@ -127,6 +79,9 @@ export default function ManagePost() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("Tất cả");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [openDeleteDialogPostId, setOpenDeleteDialogPostId] = useState<
+    string | null
+  >(null);
 
   const [accountId, setAccountId] = useState<number | null>(null);
   const [newPost, setNewPost] = useState({
@@ -252,26 +207,7 @@ export default function ManagePost() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-5xl font-bold">
-                <LogoName />
-              </h1>
-              <span className="text-xl text-gray-500 ml-8">
-                Staff Dashboard
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">Xin chào, Staff</span>
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                S
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <StaffHeader />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
@@ -536,37 +472,15 @@ export default function ManagePost() {
                               )}
 
                               {/* Xóa luôn hiển thị nếu không phải DELETED */}
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem
-                                    onSelect={(e: any) => e.preventDefault()}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Xóa
-                                  </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent className="bg-white">
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      Xác nhận xóa
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Bạn có chắc chắn muốn xóa bài viết "
-                                      {post.title}"? Hành động này không thể
-                                      hoàn tác.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDeletePost(post.id)}
-                                      className="bg-red-600 hover:bg-red-700"
-                                    >
-                                      Xóa
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() =>
+                                  setOpenDeleteDialogPostId(post.id)
+                                }
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <p className="ml-3">Xóa</p>
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
@@ -575,6 +489,19 @@ export default function ManagePost() {
                   ))}
                 </TableBody>
               </Table>
+              {openDeleteDialogPostId && (
+                <ConfirmDeleteDialog
+                  title={`Xác nhận xoá bài viết "${openDeleteDialogPostId}"`}
+                  description="Bạn có chắc chắn muốn xoá bài viết này không?"
+                  onConfirm={() => {
+                    handleDeletePost(openDeleteDialogPostId);
+                  }}
+                  open={!!openDeleteDialogPostId}
+                  onOpenChange={(open) => {
+                    if (!open) setOpenDeleteDialogPostId(null);
+                  }}
+                />
+              )}
             </div>
 
             {filteredPosts.length === 0 && (
