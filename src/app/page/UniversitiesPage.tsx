@@ -1,11 +1,11 @@
-import { Search, Building2, MapPin} from "lucide-react";
-import { Button } from "../components/ui/button";
+import { Search, Building2, MapPin } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
 import Header from "../components/header";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "../hooks/api";
+import Footer from "../components/footer";
 
 interface University {
   id: string;
@@ -51,6 +51,11 @@ interface University {
 export default function UniversitiesPage() {
   const [universities, setUniversities] = useState<University[]>([]);
   const [__loading, setLoading] = useState<boolean>(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredUniversities, setFilteredUniversities] = useState<
+    University[]
+  >([]);
+
   const [__error, setError] = useState<string>("");
   useEffect(() => {
     const fetchUniversities = async () => {
@@ -64,8 +69,16 @@ export default function UniversitiesPage() {
         setLoading(false);
       }
     };
+
     fetchUniversities();
   }, []);
+
+  useEffect(() => {
+    const filtered = universities.filter((university) =>
+      university.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredUniversities(filtered);
+  }, [searchTerm, universities]);
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -87,6 +100,8 @@ export default function UniversitiesPage() {
                 type="text"
                 placeholder="Tìm kiếm theo tên trường, địa điểm..."
                 className="w-full py-4 px-6 text-lg rounded-full bg-white text-gray-900 pr-12"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
               <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
             </div>
@@ -102,20 +117,13 @@ export default function UniversitiesPage() {
             <h2 className="text-2xl font-bold text-gray-900">
               Tìm thấy {universities.length} trường đại học
             </h2>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                Sắp xếp theo tên
-              </Button>
-              <Button variant="outline" size="sm">
-                Lọc theo khu vực
-              </Button>
-            </div>
+            
           </div>
         </div>
 
         {/* Universities Grid */}
         <div className="space-y-6">
-          {universities.map((university) => (
+          {filteredUniversities.map((university) => (
             <Link
               key={university.id}
               to={`/university-details/${university.name}`}
@@ -166,51 +174,10 @@ export default function UniversitiesPage() {
           ))}
         </div>
 
-        {/* Load More */}
-        <div className="text-center mt-12">
-          <Button
-            variant="outline"
-            className="border-blue-500 text-blue-500 hover:bg-blue-50"
-          >
-            Tải thêm trường đại học
-          </Button>
-        </div>
+      
       </section>
 
-      {/* Quick Stats */}
-      <section className="bg-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-blue-600 mb-2">
-                {universities.length}
-              </div>
-              <div className="text-gray-600">Trường đại học</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-green-600 mb-2">
-                {/* {universities.reduce((total, uni) => total + uni.majors.length, 0)} */}
-              </div>
-              <div className="text-gray-600">Ngành học</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-purple-600 mb-2">
-                {/* {universities.reduce(
-                  // (total, uni) => total + uni.majors.reduce((sum, major) => sum + major.quota, 0),
-                  0,
-                )} */}
-              </div>
-              <div className="text-gray-600">Chỉ tiêu tuyển sinh</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-orange-600 mb-2">
-                2025
-              </div>
-              <div className="text-gray-600">Năm tuyển sinh</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Footer />
     </div>
   );
 }
