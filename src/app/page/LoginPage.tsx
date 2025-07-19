@@ -161,7 +161,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       window.location.href =
-        "http://localhost:8003/oauth2/authorization/google";
+        "https://kakan-be.nguyenhoangan.site/user/oauth2/authorization/google";
     } catch (error) {
       console.error("Lỗi Google Login:", error);
       setError("Could not connect to Google, please try again.");
@@ -209,7 +209,7 @@ export default function LoginPage() {
 
               <div className="mt-8 bg-white/10 rounded-lg p-4 text-center">
                 <p className="text-sm text-sky-100">Chỉ với</p>
-                <p className="text-3xl font-bold">30.000đ / tháng</p>
+                <p className="text-3xl font-bold">50.000đ / tháng</p>
               </div>
             </div>
             <div className="p-6 pt-0">
