@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ChatSupport from "../components/chatbox-AI";
 import Footer from "../components/footer";
 import Header from "../components/header";
@@ -8,8 +8,6 @@ import { api } from "../hooks/api";
 import {
   Dialog,
   DialogContent,
-  DialogTitle,
-  DialogDescription,
 } from "../components/ui/dialog";
 
 export default function HomePage() {
