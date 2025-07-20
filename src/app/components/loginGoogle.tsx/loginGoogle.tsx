@@ -5,7 +5,7 @@ import { UserContext } from "../../hooks/userContext";
 const GoogleCallBack = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-  const accountId = searchParams.get("accountId");
+  const accountId = searchParams.get("id");
   const username = decodeURIComponent(searchParams.get("username")!);
   const role = searchParams.get("role");
   const navigate = useNavigate();
