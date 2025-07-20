@@ -33,7 +33,7 @@ import {
 import { api } from "../hooks/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-
+import { Sparkles } from "lucide-react";
 interface UserDTO {
   userId: number;
   fullName: string;
@@ -44,10 +44,18 @@ interface UserDTO {
   avatarUrl: File | string;
   gpa: number;
 }
+
+interface Order {
+  orderId: number;
+  orderDate: string;
+  expiredDate: string;
+}
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [userInfo, setUserInfo] = useState<UserDTO | null>(null);
   const [__loading, setLoading] = useState<boolean>(true);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   const navigate = useNavigate();
   const fetchUserInfo = async () => {
     try {
@@ -69,6 +77,22 @@ export default function ProfilePage() {
   };
   useEffect(() => {
     fetchUserInfo();
+  }, []);
+
+  useEffect(() => {
+    if (user.role !== "PREMIUM") return;
+
+    const fetchOrders = async () => {
+      try {
+        const res = await api.get(`/order/api/orders/${user.id}`);
+        console.log("Orders:", res);
+        setOrders([res.data.data]);
+      } catch (error) {
+        console.error("Lỗi khi lấy đơn hàng", error);
+      }
+    };
+
+    fetchOrders();
   }, []);
 
   const handleSave = async () => {
@@ -254,7 +278,7 @@ export default function ProfilePage() {
                           ? "Nam"
                           : userInfo?.gender === false
                           ? "Nữ"
-                          : "Chưa có"}
+                          : "Chưa có giới tính"}
                       </div>
                     )}
                   </div>
@@ -273,7 +297,9 @@ export default function ProfilePage() {
                     ) : (
                       <div className="p-2 bg-gray-50 rounded border flex items-center gap-2">
                         <CalendarDays className="w-4 h-4 text-gray-500" />
-                        {formatDate(userInfo?.dob || "")}
+                        {userInfo?.dob
+                          ? formatDate(userInfo.dob)
+                          : "Chưa có ngày sinh"}
                       </div>
                     )}
                   </div>
@@ -291,7 +317,7 @@ export default function ProfilePage() {
                     ) : (
                       <div className="p-2 bg-gray-50 rounded border flex items-center gap-2">
                         <Phone className="w-4 h-4 text-gray-500" />
-                        {userInfo?.phone}
+                        {userInfo?.phone || "Chưa có số điện thoại"}
                       </div>
                     )}
                   </div>
@@ -310,7 +336,7 @@ export default function ProfilePage() {
                     ) : (
                       <div className="p-2 bg-gray-50 rounded border flex items-start gap-2">
                         <MapPin className="w-4 h-4 text-gray-500 mt-1" />
-                        {userInfo?.address}
+                        {userInfo?.address || "Chưa có địa chỉ"}
                       </div>
                     )}
                   </div>
@@ -318,7 +344,7 @@ export default function ProfilePage() {
                   <div className="space-y-2">
                     <Label htmlFor="gpa">GPA</Label>
                     <div className="p-2 bg-gray-50 rounded border">
-                      {userInfo?.gpa ? userInfo.gpa.toFixed(2) : "Chưa có"}
+                      {userInfo?.gpa ? userInfo.gpa.toFixed(2) : "Chưa có GPA"}
                     </div>
                   </div>
                 </div>
@@ -378,28 +404,43 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Quick Stats Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Thống kê</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Tài khoản từ</span>
-                  <span className="font-medium">2024</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Trạng thái</span>
-                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                    Đã xác thực
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Cấp độ</span>
-                  <span className="font-medium">Học sinh</span>
-                </div>
-              </CardContent>
-            </Card>
+            {user.role === "PREMIUM" && (
+              <div>
+                {orders.map((order) => (
+                  <Card key={order.orderId}>
+                    <CardHeader>
+                      <CardTitle className="text-yellow-400">
+                        <div className="flex items-center space-x-2 justify-between">
+                          <Sparkles className="w-5 h-5 animate-pulse text-yellow-400 " />
+                          Premium Membership
+                          <Sparkles className="w-5 h-5 animate-pulse text-yellow-400 " />
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-sm text-gray-700">
+                      <div className="flex justify-between">
+                        <span>Thời hạn</span>
+                        <span className="font-medium text-gren">30 ngày</span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span>Ngày đặt</span>
+                        <span>
+                          {new Date(order.orderDate).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span>Hết hạn</span>
+                        <span>
+                          {new Date(order.expiredDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

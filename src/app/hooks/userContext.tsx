@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface User {
+  id: string | null; // Thêm id để lưu trữ accountId
   username: string;
   role:string;
   token: string;
