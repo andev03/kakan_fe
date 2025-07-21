@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import Footer from "../../components/footer";
 import UnAuthenticatedPage from "../../components/unAuthenticatedPage";
 import { api } from "../../hooks/api";
+import { toast } from "react-toastify";
 
 // Dữ liệu mẫu cho chi tiết bài đăng
 
@@ -67,9 +68,46 @@ export default function PostPage() {
   const [post, setPost] = useState<PostDto | null>(null);
   const [likedUsers, setLikedUsers] = useState<string[]>([]);
   const [showLikedUsers, setShowLikedUsers] = useState(false);
-
+  const [userInfo, setUserInfo] = useState<UserInformationDto | null>(null);
   const [__loading, setLoading] = useState(true);
   const [__error, setError] = useState("");
+  const fetchUserInfo = async () => {
+    try {
+      const response = await api.get("/user/api/user/information/");
+      console.log("profile", response);
+
+      if (response.data.status === 200) {
+        const data: UserInformationDto = response.data.data;
+
+        // Kiểm tra các trường bị null hoặc rỗng
+        const missingFields = [];
+
+        if (!data.fullName) missingFields.push("Họ tên");
+        if (!data.dob) missingFields.push("Ngày sinh");
+        if (data.gender === null || data.gender === undefined)
+          missingFields.push("Giới tính");
+        if (!data.address) missingFields.push("Địa chỉ");
+        if (!data.phone) missingFields.push("Số điện thoại");
+
+        setUserInfo(data);
+
+        if (missingFields.length > 0) {
+          toast.warning("Vui lòng cập nhật đầy đủ thông tin trước khi comment");
+          return false;
+        }
+      } else {
+        console.error(
+          "Không lấy được thông tin người dùng:",
+          response.data.message
+        );
+      }
+    } catch (error: any) {
+      console.error("Lỗi khi gọi API thông tin người dùng:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const userString = localStorage.getItem("user");
     if (userString) {
@@ -145,6 +183,8 @@ export default function PostPage() {
   const handlePostComment = async () => {
     if (!commentContent.trim()) return;
 
+    const isUserInfoValid = await fetchUserInfo();
+    if (!isUserInfoValid) return;
     try {
       const res = await api.post(`/forum/api/comment/${postId}`, {
         message: commentContent,
