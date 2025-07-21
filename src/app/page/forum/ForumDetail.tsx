@@ -68,7 +68,7 @@ export default function PostPage() {
   const [post, setPost] = useState<PostDto | null>(null);
   const [likedUsers, setLikedUsers] = useState<string[]>([]);
   const [showLikedUsers, setShowLikedUsers] = useState(false);
-  const [userInfo, setUserInfo] = useState<UserInformationDto | null>(null);
+  const [setUserInfo] = useState<UserInformationDto | null>(null);
   const [__loading, setLoading] = useState(true);
   const [__error, setError] = useState("");
   const fetchUserInfo = async () => {
@@ -228,9 +228,8 @@ export default function PostPage() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div
-            className={`${
-              !isAuthenticated ? "blur-sm pointer-events-none select-none" : ""
-            } w-full flex flex-col lg:flex-row gap-8`}
+            className={`${!isAuthenticated ? "blur-sm pointer-events-none select-none" : ""
+              } w-full flex flex-col lg:flex-row gap-8`}
           >
             <div className="lg:w-3/4">
               {/* Post */}
@@ -300,9 +299,8 @@ export default function PostPage() {
                         }
                       >
                         <ThumbsUp
-                          className={`w-4 h-4 mr-2 ${
-                            post?.liked ? "text-blue-500" : "text-gray-500"
-                          }`}
+                          className={`w-4 h-4 mr-2 ${post?.liked ? "text-blue-500" : "text-gray-500"
+                            }`}
                           fill={post?.liked ? "#3b82f6" : "none"} // Màu nền khi đã thích
                         />
                         {post?.liked ? "Đã thích" : "Thích"}
@@ -410,8 +408,8 @@ export default function PostPage() {
                             <p className="text-xs text-gray-500">
                               {comment?.createdAt
                                 ? new Date(comment.createdAt).toLocaleString(
-                                    "vi-VN"
-                                  )
+                                  "vi-VN"
+                                )
                                 : ""}
                             </p>
                           </div>
