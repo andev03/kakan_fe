@@ -5,10 +5,7 @@ import Header from "../components/header";
 import HeroSection from "../components/hero-section";
 import TabsSection from "../components/tabs-section";
 import { api } from "../hooks/api";
-import {
-  Dialog,
-  DialogContent,
-} from "../components/ui/dialog";
+import { Dialog, DialogContent } from "../components/ui/dialog";
 
 export default function HomePage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
