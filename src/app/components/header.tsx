@@ -9,6 +9,7 @@ export default function Header() {
   const { logout } = useUser();
   const navigate = useNavigate();
   const menuItems = [
+    { label: "Trang chủ", path: "/" },
     { label: "Diễn đàn", path: "/forum" },
     { label: "Đại Học", path: "/universities" },
     { label: "Tính điểm", path: "/calculate" },

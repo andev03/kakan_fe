@@ -84,8 +84,8 @@ export default function PremiumRegisterPage() {
 
   const handleVNPay = async () => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const accountId = parseInt(user.id);
     console.log(user);
+    const accountId = parseInt(user.id);
     if (!accountId) {
       console.error("Không tìm thấy accountId trong localStorage");
       return;
