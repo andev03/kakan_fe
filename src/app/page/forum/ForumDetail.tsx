@@ -68,7 +68,7 @@ export default function PostPage() {
   const [post, setPost] = useState<PostDto | null>(null);
   const [likedUsers, setLikedUsers] = useState<string[]>([]);
   const [showLikedUsers, setShowLikedUsers] = useState(false);
-  const [userInfo, setUserInfo] = useState<UserInformationDto | null>(null);
+  const [__userInfo, setUserInfo] = useState<UserInformationDto | null>(null);
   const [__loading, setLoading] = useState(true);
   const [__error, setError] = useState("");
   const fetchUserInfo = async () => {
